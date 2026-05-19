@@ -50,7 +50,7 @@ const NAV_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   refraction: 0,
   bevelDepth: 0.052,
   bevelWidth: 0.211,
-  frost: 2,
+  frost: 6,
   magnify: 1,
   shadow: true,
   specular: true,

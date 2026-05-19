@@ -6,8 +6,7 @@ export default function Navbar() {
     <div className="nav-wrapper">
       <nav className="nav-container">
         <Link href="/" className="nav-logo">
-          <span className="blue">Prith</span>
-          <span className="grey">eeve</span>
+          <img src="/pritheeve-logo.png" alt="Pritheeve" className="nav-logo-image" />
         </Link>
         
         <ul className="nav-links">
