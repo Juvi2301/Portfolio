@@ -149,6 +149,12 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
+  --orbit-center-x: calc(50% + clamp(90px, 14.3vh, 160px));
+  --orbit-center-y: clamp(420px, 60vh, 590px);
+  --orbit-inner: clamp(340px, 48.1vh, 480px);
+  --orbit-middle: clamp(450px, 63.5vh, 620px);
+  --orbit-outer: clamp(560px, 78.8vh, 780px);
+  --orbit-radius: calc(var(--orbit-middle) / 2);
 }
 
 /* Text Content - Locked fluidly relative to center */
@@ -243,26 +249,32 @@ body {
   pointer-events: none;
 }
 
-/* Circles Layer - Faded on the left side to prevent text overlap */
-.circles-layer {
+.circles-layer,
+.social-icons-layer {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  z-index: 5;
   pointer-events: none;
-  /* Smoothly fade the circles out before they reach the text block */
   mask-image: linear-gradient(to right, transparent 0%, transparent 40%, rgba(0,0,0,1) 50%, rgba(0,0,0,1) 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 40%, rgba(0,0,0,1) 50%, rgba(0,0,0,1) 100%);
+}
+
+.circles-layer {
+  z-index: 5;
+  clip-path: inset(120px 0 0 0);
+}
+
+.social-icons-layer {
+  z-index: 101;
 }
 
 /* Center of the concentric circles */
 .circles-center {
   position: absolute;
-  /* Fluid offset: 140px / 9.78 = 14.3vh */
-  left: calc(50% + 14.3vh); 
-  top: 60%; 
+  left: var(--orbit-center-x); 
+  top: var(--orbit-center-y); 
   width: 0;
   height: 0;
 }
@@ -276,21 +288,22 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Fluid dimensions based on perfect 978px height */
-.circle-1 { width: 48.1vh; height: 48.1vh; } /* 471px */
-.circle-2 { width: 63.5vh; height: 63.5vh; } /* 621px */
-.circle-3 { width: 78.8vh; height: 78.8vh; } /* 771px */
+/* Fluid dimensions based on the Figma orbit composition */
+.circle-1 { width: var(--orbit-inner); height: var(--orbit-inner); }
+.circle-2 { width: var(--orbit-middle); height: var(--orbit-middle); }
+.circle-3 { width: var(--orbit-outer); height: var(--orbit-outer); }
 
 /* Icons placed exactly on the 63.5vh circle (Radius 31.75vh) */
 .icon-wrapper {
   position: absolute;
-  width: 72px; 
-  height: 72px;
-  border-radius: 50%;
-  background: rgba(20, 25, 35, 0.85); 
+  width: 68px; 
+  height: 68px;
+  border-radius: 56px;
+  overflow: clip;
+  background: rgba(255, 255, 255, 0.06); 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -304,58 +317,155 @@ body {
 }
 
 .icon-wrapper:hover {
-  background: rgba(40, 45, 55, 0.95);
+  background: rgba(255, 255, 255, 0.1);
   transform: translate(-50%, -50%) scale(1.1);
 }
 
 /* Precise coordinates relative to .circles-center (0,0) on 31.75vh radius */
 /* LinkedIn: Angle -55 degrees */
 .icon-linkedin {
-  top: -26vh;    /* 31.75 * -0.819 */
-  left: 18.2vh;  /* 31.75 * 0.573 */
+  top: calc(var(--orbit-radius) * -0.819);
+  left: calc(var(--orbit-radius) * 0.573);
 }
 
 /* GitHub: Angle 0 degrees */
 .icon-github {
   top: 0px;
-  left: 31.75vh; 
+  left: var(--orbit-radius); 
 }
 
 /* Instagram: Angle 55 degrees */
 .icon-instagram {
-  top: 26vh;
-  left: 18.2vh;
+  top: calc(var(--orbit-radius) * 0.819);
+  left: calc(var(--orbit-radius) * 0.573);
 }
 
 @media (max-width: 1024px) {
+  .hero-container {
+    --orbit-center-x: calc(58% + clamp(60px, 12vw, 130px));
+    --orbit-center-y: 58%;
+    --orbit-inner: clamp(300px, 46vmin, 430px);
+    --orbit-middle: clamp(410px, 62vmin, 560px);
+    --orbit-outer: clamp(520px, 78vmin, 700px);
+    --orbit-radius: calc(var(--orbit-middle) / 2);
+  }
+
+  .hero-text-content {
+    left: clamp(28px, 8vw, 80px);
+    right: auto;
+    transform: translateY(-50%);
+    text-align: left;
+    z-index: 30;
+    width: min(430px, 52vw);
+  }
+
+  .hero-divider {
+    margin: 0 0 24px 0;
+  }
+
+  .hero-image-wrapper {
+    left: 58%;
+    height: 82vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-wrapper {
+    top: 24px;
+    padding: 0 24px;
+  }
+
+  .nav-container {
+    padding: 12px 16px 12px 22px;
+  }
+
+  .nav-logo {
+    font-size: 1.2rem;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .btn-hire {
+    padding: 9px 14px;
+    font-size: 0.8rem;
+  }
+
+  .hero-section {
+    height: 100svh;
+    min-height: 760px;
+  }
+
+  .hero-container {
+    --orbit-center-x: 50%;
+    --orbit-center-y: min(385px, 47svh);
+    --orbit-inner: clamp(310px, 88vw, 430px);
+    --orbit-middle: clamp(410px, 116vw, 560px);
+    --orbit-outer: clamp(510px, 144vw, 700px);
+    --orbit-radius: calc(var(--orbit-middle) / 2);
+  }
+
   .hero-text-content {
     left: 50%;
-    right: auto;
-    transform: translate(-50%, -50%);
+    top: min(600px, 70svh);
+    transform: translateX(-50%);
     text-align: center;
-    z-index: 30;
-    width: 90%;
+    width: min(88vw, 360px);
   }
+
   .hero-divider {
-    margin: 0 auto 24px auto;
+    display: none;
   }
+
+  .hero-title {
+    font-size: clamp(2rem, 9.6vw, 2.8rem);
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin-bottom: 22px;
+  }
+
   .hero-image-wrapper {
-    opacity: 0.3; 
-  }
-  
-  /* On mobile, switch to vw so circles don't blow out horizontally */
-  .circles-center {
     left: 50%;
-    top: 50%;
+    top: 112px;
+    bottom: auto;
+    height: min(54svh, 500px);
+    max-height: 500px;
+    min-height: 390px;
   }
-  .circle-1 { width: 50vw; height: 50vw; }
-  .circle-2 { width: 75vw; height: 75vw; }
-  .circle-3 { width: 100vw; height: 100vw; }
-  
-  /* R = 37.5vw */
-  .icon-linkedin { top: -30.7vw; left: 21.5vw; }
-  .icon-github { top: 0; left: 37.5vw; }
-  .icon-instagram { top: 30.7vw; left: 21.5vw; }
+
+  .circles-layer,
+  .social-icons-layer {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .circles-layer {
+    clip-path: inset(96px 0 0 0);
+  }
+
+  .icon-wrapper {
+    width: 56px;
+    height: 56px;
+  }
+
+  .icon-wrapper svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .icon-github {
+    left: calc(var(--orbit-radius) * 0.6);
+  }
+
+  .btn-down {
+    display: none;
+  }
 }
 
 /* =========================================
@@ -510,15 +620,22 @@ canvas[data-liquid-ignore] {
   pointer-events: none !important;
 }
 
-/* 2. Restore pointer-events to the navbar lens so links remain fully clickable */
-.nav-container {
+/* 2. Restore pointer-events to liquidGL lenses so links remain fully clickable */
+.nav-container,
+.icon-wrapper {
   pointer-events: auto !important;
 }
 
-/* 3. Keep nav link, logo, and button children above the refraction lens */
-.nav-container > * {
+/* 3. Keep lens content above the refraction canvas */
+.nav-container > *,
+.icon-wrapper > * {
   position: relative;
   z-index: 10;
   pointer-events: auto !important;
+}
+
+.icon-wrapper > * {
+  color: #ffffff;
+  filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.2));
 }
 
