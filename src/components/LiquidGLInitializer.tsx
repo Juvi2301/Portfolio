@@ -50,7 +50,7 @@ const NAV_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   refraction: 0,
   bevelDepth: 0.052,
   bevelWidth: 0.211,
-  frost: 2,
+  frost: 6,
   magnify: 1,
   shadow: true,
   specular: true,
@@ -65,16 +65,6 @@ const ICON_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   bevelDepth: 0.06,
   bevelWidth: 0.18,
   frost: 1.4,
-  reveal: "none",
-};
-
-const DOWN_BUTTON_LIQUID_GL_OPTIONS: LiquidGLOptions = {
-  ...NAV_LIQUID_GL_OPTIONS,
-  target: ".btn-down",
-  refraction: 0.012,
-  bevelDepth: 0.12,
-  bevelWidth: 0.24,
-  frost: 0.8,
   reveal: "none",
 };
 
@@ -116,7 +106,6 @@ export default function LiquidGLInitializer() {
       window.__portfolioLiquidGLReady__ = true;
       window.liquidGL?.(NAV_LIQUID_GL_OPTIONS);
       window.liquidGL?.(ICON_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(DOWN_BUTTON_LIQUID_GL_OPTIONS);
     });
   };
 
