@@ -70,19 +70,20 @@ body {
 }
 
 .nav-logo {
-  font-size: 1.5rem;
-  font-weight: 700;
   text-decoration: none;
-  letter-spacing: 0.05em;
   display: flex;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
-.nav-logo .blue {
-  color: #3b82f6;
-}
-
-.nav-logo .grey {
-  color: #6b7280;
+.nav-logo-image {
+  display: block;
+  width: clamp(170px, 23vw, 298px);
+  height: auto;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 8px rgba(7, 95, 228, 0.22));
 }
 
 .nav-links {
@@ -425,8 +426,8 @@ body {
     padding: 12px 16px 12px 22px;
   }
 
-  .nav-logo {
-    font-size: 1.2rem;
+  .nav-logo-image {
+    width: clamp(125px, 37vw, 155px);
   }
 
   .nav-links {
