@@ -58,6 +58,8 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50px;
+  overflow: clip;
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -497,3 +499,26 @@ body {
     border-top-left-radius: 40px;
   }
 }
+
+/* ==========================================================================
+   liquidGL WebGL Glassmorphism Overrides & Tuning
+   ========================================================================== */
+
+/* 1. Keep the fullscreen liquidGL WebGL canvas directly behind the fixed navbar. */
+canvas[data-liquid-ignore] {
+  z-index: 99 !important;
+  pointer-events: none !important;
+}
+
+/* 2. Restore pointer-events to the navbar lens so links remain fully clickable */
+.nav-container {
+  pointer-events: auto !important;
+}
+
+/* 3. Keep nav link, logo, and button children above the refraction lens */
+.nav-container > * {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto !important;
+}
+
