@@ -68,6 +68,16 @@ const ICON_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   reveal: "none",
 };
 
+const DOWN_BUTTON_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...NAV_LIQUID_GL_OPTIONS,
+  target: ".btn-down",
+  refraction: 0.012,
+  bevelDepth: 0.12,
+  bevelWidth: 0.24,
+  frost: 0.8,
+  reveal: "none",
+};
+
 function cleanupLiquidGL() {
   const renderer = window.__liquidGLRenderer__;
 
@@ -106,6 +116,7 @@ export default function LiquidGLInitializer() {
       window.__portfolioLiquidGLReady__ = true;
       window.liquidGL?.(NAV_LIQUID_GL_OPTIONS);
       window.liquidGL?.(ICON_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(DOWN_BUTTON_LIQUID_GL_OPTIONS);
     });
   };
 
