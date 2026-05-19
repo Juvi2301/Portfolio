@@ -1,5 +1,4 @@
 import { ChevronDown } from "lucide-react";
-import Image from "next/image";
 
 const LinkedinIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -26,13 +25,18 @@ export default function Hero() {
     <section className="hero-section">
       <div className="container hero-container">
         
-        {/* Circles & Icons Background */}
+        {/* Circles Background */}
         <div className="circles-layer">
           <div className="circles-center">
             <div className="circle circle-1"></div>
             <div className="circle circle-2"></div>
             <div className="circle circle-3"></div>
-            
+          </div>
+        </div>
+
+        {/* Social Icons */}
+        <div className="social-icons-layer">
+          <div className="circles-center">
             {/* Icons are positioned mathematically relative to circles-center */}
             <a href="#" className="icon-wrapper icon-linkedin" aria-label="LinkedIn">
               <LinkedinIcon />
@@ -50,7 +54,7 @@ export default function Hero() {
         <div className="hero-text-content">
           <div className="hero-divider"></div>
           <h1 className="hero-title">
-            I'm Pritheeve, a<br />Software Engineer
+            I&apos;m Pritheeve, a<br />Software Engineer
           </h1>
           <p className="hero-subtitle">
             Building modern web applications with strong<br />
