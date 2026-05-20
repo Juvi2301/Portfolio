@@ -769,6 +769,241 @@ body {
   margin-bottom: 0;
 }
 
+/* =========================================
+   Experience Section
+   ========================================= */
+.experience-section {
+  position: relative;
+  z-index: 120;
+  padding: 90px 24px 140px;
+}
+
+.experience-container {
+  width: min(100%, 1060px);
+  margin: 0 auto;
+}
+
+.experience-title-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 34px;
+}
+
+.experience-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: 0.2px;
+}
+
+.experience-divider {
+  width: 86px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.36);
+}
+
+.experience-timeline {
+  --timeline-center: 52%;
+  position: relative;
+  min-height: 330px;
+}
+
+.experience-line {
+  position: absolute;
+  left: var(--timeline-center);
+  top: 4px;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 255, 255, 0.06) 18%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.06) 82%,
+    transparent
+  );
+}
+
+.experience-item {
+  position: relative;
+  min-height: 132px;
+}
+
+.experience-item-right {
+  padding-left: calc(var(--timeline-center) + 58px);
+}
+
+.experience-item-left {
+  margin-top: 24px;
+  padding-right: calc(100% - var(--timeline-center) + 58px);
+}
+
+.experience-card {
+  position: relative;
+  min-height: 96px;
+  padding: 24px 28px;
+  overflow: clip;
+  border-radius: 8px 8px 42px 8px;
+  isolation: isolate;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.experience-card-lens {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: clip;
+  border-radius: inherit;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02) 44%, rgba(255, 255, 255, 0.035)),
+    rgba(3, 7, 18, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -14px 28px rgba(0, 0, 0, 0.2),
+    0 16px 36px rgba(0, 0, 0, 0.34);
+}
+
+.experience-card-lens::before,
+.experience-card-lens::after,
+.experience-node-lens::before,
+.experience-node-lens::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.experience-card-lens::before {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  mask-image:
+    linear-gradient(135deg, #000 0 20%, transparent 48%),
+    linear-gradient(315deg, #000 0 14%, transparent 36%);
+  -webkit-mask-image:
+    linear-gradient(135deg, #000 0 20%, transparent 48%),
+    linear-gradient(315deg, #000 0 14%, transparent 36%);
+}
+
+.experience-card-lens::after {
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.06), transparent 36%),
+    radial-gradient(circle at 88% 78%, rgba(255, 255, 255, 0.08), transparent 32%);
+  mix-blend-mode: screen;
+  opacity: 0.52;
+}
+
+.experience-card-content {
+  position: relative;
+  z-index: 2;
+}
+
+.experience-period {
+  display: block;
+  margin-bottom: 7px;
+  color: #8c96a5;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.experience-role {
+  margin: 0 0 4px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.experience-company {
+  margin: 0;
+  color: #c6ced9;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.experience-node {
+  position: absolute;
+  left: var(--timeline-center);
+  top: 36px;
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  isolation: isolate;
+}
+
+.experience-node-lens {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: clip;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(13px);
+  -webkit-backdrop-filter: blur(13px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -12px 20px rgba(0, 0, 0, 0.34),
+    0 12px 30px rgba(0, 0, 0, 0.48);
+}
+
+.experience-node-blue .experience-node-lens {
+  background: rgba(7, 95, 228, 0.24);
+  border-color: rgba(85, 156, 255, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(85, 156, 255, 0.22),
+    inset 0 -12px 20px rgba(0, 0, 0, 0.28),
+    0 12px 30px rgba(0, 0, 0, 0.42),
+    0 0 24px rgba(7, 95, 228, 0.16);
+}
+
+.experience-node-lens::before {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  mask-image:
+    linear-gradient(135deg, #000 0 18%, transparent 42%),
+    linear-gradient(315deg, #000 0 14%, transparent 38%);
+  -webkit-mask-image:
+    linear-gradient(135deg, #000 0 18%, transparent 42%),
+    linear-gradient(315deg, #000 0 14%, transparent 38%);
+}
+
+.experience-node-blue .experience-node-lens::before {
+  border-color: rgba(85, 156, 255, 0.28);
+}
+
+.experience-node-lens::after {
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.14), transparent 24%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.06), transparent 48%);
+  mix-blend-mode: screen;
+  opacity: 0.54;
+}
+
+.experience-node-blue .experience-node-lens::after {
+  background:
+    radial-gradient(circle at 28% 18%, rgba(85, 156, 255, 0.24), transparent 24%),
+    linear-gradient(145deg, rgba(7, 95, 228, 0.16), transparent 48%);
+  opacity: 0.66;
+}
+
+.experience-node svg {
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.32));
+}
+
 /* Responsive About */
 @media (max-width: 1024px) {
   .about-container {
@@ -793,6 +1028,38 @@ body {
     padding: 30px;
     border-top-left-radius: 40px;
   }
+
+  .experience-container {
+    max-width: 720px;
+  }
+
+  .experience-timeline {
+    --timeline-center: 38px;
+    min-height: 0;
+  }
+
+  .experience-title-wrapper {
+    align-items: center;
+  }
+
+  .experience-item,
+  .experience-item-right,
+  .experience-item-left {
+    min-height: 126px;
+    margin-top: 0;
+    padding-left: 96px;
+    padding-right: 0;
+  }
+
+  .experience-card {
+    padding: 22px 24px;
+  }
+
+  .experience-node {
+    top: 34px;
+    width: 58px;
+    height: 58px;
+  }
 }
 
 /* ==========================================================================
@@ -810,7 +1077,9 @@ canvas[data-liquid-ignore] {
 .icon-wrapper,
 .btn-down,
 .liquid-glass-badge-lens,
-.about-card-lens {
+.about-card-lens,
+.experience-card-lens,
+.experience-node-lens {
   pointer-events: auto !important;
 }
 
@@ -819,7 +1088,9 @@ canvas[data-liquid-ignore] {
 .icon-wrapper > *,
 .btn-down > *,
 .liquid-glass-badge-lens > *,
-.about-card-lens > * {
+.about-card-lens > *,
+.experience-card-lens > *,
+.experience-node-lens > * {
   position: relative;
   z-index: 10;
   pointer-events: auto !important;
