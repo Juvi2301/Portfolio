@@ -89,6 +89,22 @@ const ABOUT_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   reveal: "none",
 };
 
+const EXPERIENCE_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...ABOUT_CARD_LIQUID_GL_OPTIONS,
+  target: ".experience-card-lens",
+  bevelDepth: 0.038,
+  bevelWidth: 0.15,
+  frost: 2.1,
+};
+
+const EXPERIENCE_NODE_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...ICON_LIQUID_GL_OPTIONS,
+  target: ".experience-node-lens",
+  bevelDepth: 0.058,
+  bevelWidth: 0.18,
+  frost: 1.2,
+};
+
 function cleanupLiquidGL() {
   const renderer = window.__liquidGLRenderer__;
 
@@ -129,6 +145,8 @@ export default function LiquidGLInitializer() {
       window.liquidGL?.(ICON_LIQUID_GL_OPTIONS);
       window.liquidGL?.(STAT_BADGE_LIQUID_GL_OPTIONS);
       window.liquidGL?.(ABOUT_CARD_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(EXPERIENCE_CARD_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(EXPERIENCE_NODE_LIQUID_GL_OPTIONS);
     });
   };
 
