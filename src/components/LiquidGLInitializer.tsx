@@ -68,6 +68,27 @@ const ICON_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   reveal: "none",
 };
 
+const STAT_BADGE_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...ICON_LIQUID_GL_OPTIONS,
+  target: ".liquid-glass-badge-lens",
+  bevelDepth: 0.06,
+  bevelWidth: 0.18,
+  frost: 1.4,
+  shadow: true,
+  specular: true,
+};
+
+const ABOUT_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...NAV_LIQUID_GL_OPTIONS,
+  target: ".about-card-lens",
+  bevelDepth: 0.042,
+  bevelWidth: 0.16,
+  frost: 2.8,
+  shadow: true,
+  specular: true,
+  reveal: "none",
+};
+
 function cleanupLiquidGL() {
   const renderer = window.__liquidGLRenderer__;
 
@@ -106,6 +127,8 @@ export default function LiquidGLInitializer() {
       window.__portfolioLiquidGLReady__ = true;
       window.liquidGL?.(NAV_LIQUID_GL_OPTIONS);
       window.liquidGL?.(ICON_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(STAT_BADGE_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(ABOUT_CARD_LIQUID_GL_OPTIONS);
     });
   };
 
