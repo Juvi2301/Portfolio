@@ -105,6 +105,45 @@ const EXPERIENCE_NODE_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   frost: 1.2,
 };
 
+const TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...ABOUT_CARD_LIQUID_GL_OPTIONS,
+  target: ".technical-skill-card-lens",
+  bevelDepth: 0.034,
+  bevelWidth: 0.13,
+  frost: 2,
+};
+
+const PROJECT_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...EXPERIENCE_CARD_LIQUID_GL_OPTIONS,
+  target: ".project-card-lens",
+  refraction: 0.01,
+  bevelDepth: 0.03,
+  bevelWidth: 0.12,
+  frost: 1.5,
+  shadow: false,
+  specular: false,
+};
+
+const CONTACT_FOOTER_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...ABOUT_CARD_LIQUID_GL_OPTIONS,
+  target: ".contact-footer-lens",
+  refraction: 0.008,
+  bevelDepth: 0.04,
+  bevelWidth: 0.16,
+  frost: 2.4,
+};
+
+const CONTACT_CONTROL_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...ICON_LIQUID_GL_OPTIONS,
+  target: ".contact-footer-cta-lens, .contact-footer-top-lens, .contact-footer-social-lens",
+  refraction: 0.008,
+  bevelDepth: 0.045,
+  bevelWidth: 0.16,
+  frost: 1.5,
+  shadow: true,
+  specular: true,
+};
+
 function cleanupLiquidGL() {
   const renderer = window.__liquidGLRenderer__;
 
@@ -147,6 +186,10 @@ export default function LiquidGLInitializer() {
       window.liquidGL?.(ABOUT_CARD_LIQUID_GL_OPTIONS);
       window.liquidGL?.(EXPERIENCE_CARD_LIQUID_GL_OPTIONS);
       window.liquidGL?.(EXPERIENCE_NODE_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(PROJECT_CARD_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(CONTACT_FOOTER_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(CONTACT_CONTROL_LIQUID_GL_OPTIONS);
     });
   };
 

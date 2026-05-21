@@ -13,7 +13,7 @@ export default function Navbar() {
           <li><Link href="/" className="active">Home</Link></li>
           <li><Link href="#about">About</Link></li>
           <li><Link href="#experience">Experience</Link></li>
-          <li><Link href="#pages">Pages</Link></li>
+          <li><Link href="#technical-skills">Skills</Link></li>
           <li><Link href="#contact">Contact</Link></li>
         </ul>
         
