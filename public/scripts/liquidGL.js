@@ -463,20 +463,7 @@
 
           const ignoreElementsFunc = (element) => {
             if (!element || !element.hasAttribute) return false;
-            if (element.tagName === "CANVAS") {
-              return true;
-            }
             if (element === this.canvas || lensElements.includes(element)) {
-              return true;
-            }
-            if (element instanceof HTMLCanvasElement) {
-              return true;
-            }
-            if (
-              element instanceof HTMLElement &&
-              element.offsetWidth === 0 &&
-              element.offsetHeight === 0
-            ) {
               return true;
             }
             const style = window.getComputedStyle(element);
