@@ -94,6 +94,7 @@
       this.scaleFactor = 1;
       this.startTime = Date.now();
       this._scrollUpdateCounter = 0;
+      this._captureScheduled = false;
 
       this._initGL();
 
@@ -149,6 +150,10 @@
       this._dynamicNodes = [];
       this._dynMeta = new WeakMap();
       this._lastDynamicUpdate = 0;
+      this._snapshotResolution = Math.max(
+        0.1,
+        Math.min(3.0, Number(snapshotResolution) || 1.0)
+      );
 
       const styleEl = document.createElement("style");
       styleEl.id = "liquid-gl-dynamic-styles";
@@ -156,7 +161,6 @@
       this._dynamicStyleSheet = styleEl.sheet;
 
       this._resizeCanvas();
-      this.captureSnapshot();
 
       this._pendingReveal = [];
 
@@ -171,11 +175,6 @@
       this._tmpCtx = this._tmpCanvas.getContext("2d");
 
       this.canvas.style.opacity = "0";
-
-      this._snapshotResolution = Math.max(
-        0.1,
-        Math.min(3.0, snapshotResolution)
-      );
 
       this.useExternalTicker = false;
 
@@ -421,8 +420,20 @@
         delayMs = 500
       ) => {
         try {
-          const fullW = this.snapshotTarget.scrollWidth;
-          const fullH = this.snapshotTarget.scrollHeight;
+          const targetRect = this.snapshotTarget.getBoundingClientRect();
+          const fullW = Math.ceil(
+            this.snapshotTarget.scrollWidth || targetRect.width || innerWidth
+          );
+          const fullH = Math.ceil(
+            this.snapshotTarget.scrollHeight || targetRect.height || innerHeight
+          );
+
+          if (fullW <= 0 || fullH <= 0) {
+            throw new Error(
+              `liquidGL: Snapshot target has invalid dimensions (${fullW}x${fullH})`
+            );
+          }
+
           const maxTex = this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) || 8192;
           const MAX_MOBILE_DIM = 4096;
           const isMobileSafari = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -432,6 +443,10 @@
             maxTex / fullW,
             maxTex / fullH
           );
+
+          if (!Number.isFinite(scale) || scale <= 0) {
+            scale = 1.0;
+          }
 
           if (isMobileSafari) {
             const over = (Math.max(fullW, fullH) * scale) / MAX_MOBILE_DIM;
@@ -461,6 +476,27 @@
             );
           };
 
+          const sanitizeClone = (doc) => {
+            doc.querySelectorAll("*").forEach((node) => {
+              if (!(node instanceof doc.defaultView.HTMLElement)) return;
+              const style = doc.defaultView.getComputedStyle(node);
+              const rect = node.getBoundingClientRect();
+
+              node.style.backdropFilter = "none";
+              node.style.webkitBackdropFilter = "none";
+
+              if (
+                rect.width <= 0 ||
+                rect.height <= 0 ||
+                style.backgroundSize.includes("0px")
+              ) {
+                node.style.backgroundImage = "none";
+                node.style.webkitMaskImage = "none";
+                node.style.maskImage = "none";
+              }
+            });
+          };
+
           const snapCanvas = await html2canvas(this.snapshotTarget, {
             allowTaint: false,
             useCORS: true,
@@ -472,6 +508,7 @@
             scrollY: 0,
             scale: scale,
             ignoreElements: ignoreElementsFunc,
+            onclone: sanitizeClone,
           });
 
           this._uploadTexture(snapCanvas);
@@ -497,6 +534,17 @@
       };
 
       return await attemptCapture();
+    }
+
+    /* ----------------------------- */
+    scheduleSnapshot() {
+      if (this._captureScheduled) return;
+      this._captureScheduled = true;
+
+      requestAnimationFrame(() => {
+        this._captureScheduled = false;
+        this.captureSnapshot();
+      });
     }
 
     /* ----------------------------- */
@@ -566,6 +614,7 @@
       } else {
         lens._reveal();
       }
+      this.scheduleSnapshot();
       return lens;
     }
 
