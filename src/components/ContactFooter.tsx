@@ -28,42 +28,54 @@ export default function ContactFooter() {
         <span className="contact-footer-lens" aria-hidden="true" />
 
         <div className="contact-footer-content" data-liquid-ignore>
-          <div className="contact-footer-main">
-            <h2 className="contact-footer-title">Let&apos;s Work Together</h2>
-            <p className="contact-footer-text">
-              I&apos;m currently available for freelance work or new opportunities. If you have a
-              project that needs some creative coding, I&apos;d love to hear about it.
-            </p>
-            <a href="mailto:hello@example.com" className="contact-footer-cta">
-              <span className="contact-footer-cta-lens" aria-hidden="true" />
-              <span className="contact-footer-cta-label" data-liquid-ignore>
-                <Mail size={14} strokeWidth={2.2} />
-                Get in Touch
-              </span>
-            </a>
+          <div className="footer-grid">
+            {/* Column 1: Profile */}
+            <div className="footer-col-profile">
+              <img src="/pritheeve-logo.png" alt="Pritheeve Logo" className="footer-logo" />
+              <p className="footer-bio">
+                Higher National Diploma in Information Technology at SLIATE
+              </p>
+              <div className="contact-footer-socials" aria-label="Social links">
+                <a href="#" className="contact-footer-social" aria-label="GitHub">
+                  <span className="contact-footer-social-lens" aria-hidden="true" />
+                  <GithubIcon />
+                </a>
+                <a href="#" className="contact-footer-social" aria-label="LinkedIn">
+                  <span className="contact-footer-social-lens" aria-hidden="true" />
+                  <LinkedinIcon />
+                </a>
+                <a href="#" className="contact-footer-social" aria-label="Twitter">
+                  <span className="contact-footer-social-lens" aria-hidden="true" />
+                  <TwitterIcon />
+                </a>
+              </div>
+            </div>
+
+            {/* Column 2: Quick Links */}
+            <div className="footer-col-links">
+              <h4 className="footer-heading">Quick Links</h4>
+              <ul className="footer-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#technical-skills">Skills</a></li>
+                <li><a href="#contact">Contact</a></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Get In Touch */}
+            <div className="footer-col-contact">
+              <h4 className="footer-heading">Get In Touch</h4>
+              <ul className="footer-contact-info">
+                <li><a href="mailto:thayalanpritheeve@gmail.com">thayalanpritheeve@gmail.com</a></li>
+                <li><a href="tel:+94773780900">+94 77 378 0900</a></li>
+              </ul>
+            </div>
           </div>
 
-          <a href="#" className="contact-footer-top" aria-label="Back to top">
-            <span className="contact-footer-top-lens" aria-hidden="true" />
-            <ChevronUp size={27} strokeWidth={2.7} data-liquid-ignore />
-          </a>
+          <div className="footer-divider"></div>
 
-          <div className="contact-footer-bottom">
-            <p className="contact-footer-copy">© 2023 Pritheeve. All rights reserved.</p>
-            <div className="contact-footer-socials" aria-label="Social links">
-              <a href="#" className="contact-footer-social" aria-label="GitHub">
-                <span className="contact-footer-social-lens" aria-hidden="true" />
-                <GithubIcon />
-              </a>
-              <a href="#" className="contact-footer-social" aria-label="LinkedIn">
-                <span className="contact-footer-social-lens" aria-hidden="true" />
-                <LinkedinIcon />
-              </a>
-              <a href="#" className="contact-footer-social" aria-label="Twitter">
-                <span className="contact-footer-social-lens" aria-hidden="true" />
-                <TwitterIcon />
-              </a>
-            </div>
+          <div className="footer-bottom-bar">
+            <p className="footer-copyright">© 2026 Pritheeve. All rights reserved.</p>
           </div>
         </div>
       </div>

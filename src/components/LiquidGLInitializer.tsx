@@ -133,6 +133,28 @@ const CONTACT_FOOTER_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   frost: 2.4,
 };
 
+const CONTACT_FORM_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...ABOUT_CARD_LIQUID_GL_OPTIONS,
+  target: ".contact-form-lens",
+  bevelDepth: 0.04,
+  bevelWidth: 0.15,
+  frost: 2.4,
+  shadow: false,
+  specular: true,
+  reveal: "none",
+};
+
+const CONTACT_SEND_BTN_LIQUID_GL_OPTIONS: LiquidGLOptions = {
+  ...ICON_LIQUID_GL_OPTIONS,
+  target: ".contact-send-btn-lens",
+  refraction: 0.008,
+  bevelDepth: 0.045,
+  bevelWidth: 0.16,
+  frost: 1.5,
+  shadow: true,
+  specular: true,
+};
+
 const CONTACT_CONTROL_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   ...ICON_LIQUID_GL_OPTIONS,
   target: ".contact-footer-cta-lens, .contact-footer-top-lens, .contact-footer-social-lens",
@@ -189,6 +211,8 @@ export default function LiquidGLInitializer() {
       window.liquidGL?.(TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS);
       window.liquidGL?.(PROJECT_CARD_LIQUID_GL_OPTIONS);
       window.liquidGL?.(CONTACT_FOOTER_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(CONTACT_FORM_LIQUID_GL_OPTIONS);
+      window.liquidGL?.(CONTACT_SEND_BTN_LIQUID_GL_OPTIONS);
       window.liquidGL?.(CONTACT_CONTROL_LIQUID_GL_OPTIONS);
     });
   };
