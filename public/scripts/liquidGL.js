@@ -251,7 +251,7 @@
         uniform float u_bevelDepth;
         uniform float u_bevelWidth;
         uniform float u_frost;
-        uniform float u_radius;
+        uniform vec4  u_radii;
         uniform float u_time;
         uniform bool  u_specular;
         uniform float u_revealProgress;
@@ -260,18 +260,20 @@
         uniform float u_tiltY;
         uniform float u_magnify;
 
-        float udRoundBox( vec2 p, vec2 b, float r ) {
-          return length(max(abs(p)-b+r,0.0))-r;
+        float udRoundBox( vec2 p, vec2 b, vec4 r ) {
+          vec2 q_r = (p.x > 0.0) ? r.xy : r.zw;
+          float rad = (p.y > 0.0) ? q_r.x : q_r.y;
+          return length(max(abs(p)-b+rad,0.0))-rad;
         }
 
         float random(vec2 st) {
           return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
         }
 
-        float edgeFactor(vec2 uv, float radius_px){
+        float edgeFactor(vec2 uv, vec4 radii_px){
           vec2 p_px = (uv - 0.5) * u_resolution;
           vec2 b_px = 0.5 * u_resolution;
-          float d = -udRoundBox(p_px, b_px, radius_px);
+          float d = -udRoundBox(p_px, b_px, radii_px);
           float bevel_px = u_bevelWidth * min(u_resolution.x, u_resolution.y);
           return 1.0 - smoothstep(0.0, bevel_px, d);
         }
@@ -279,7 +281,7 @@
           vec2 p = v_uv - 0.5;
           p.x *= u_resolution.x / u_resolution.y;
 
-          float edge = edgeFactor(v_uv, u_radius);
+          float edge = edgeFactor(v_uv, u_radii);
           float min_dimension = min(u_resolution.x, u_resolution.y);
           float offsetAmt = (edge * u_refraction + pow(edge, 10.0) * u_bevelDepth);
           float centreBlend = smoothstep(0.15, 0.45, length(p));
@@ -335,7 +337,7 @@
 
           vec2 p_px = (v_uv - 0.5) * u_resolution;
           vec2 b_px = 0.5 * u_resolution;
-          float dmask = udRoundBox(p_px, b_px, u_radius);
+          float dmask = udRoundBox(p_px, b_px, u_radii);
           float inShape = 1.0 - step(0.0, dmask);
 
           if (u_specular) {
@@ -386,7 +388,7 @@
         bevelDepth: gl.getUniformLocation(this.program, "u_bevelDepth"),
         bevelWidth: gl.getUniformLocation(this.program, "u_bevelWidth"),
         frost: gl.getUniformLocation(this.program, "u_frost"),
-        radius: gl.getUniformLocation(this.program, "u_radius"),
+        radii: gl.getUniformLocation(this.program, "u_radii"),
         time: gl.getUniformLocation(this.program, "u_time"),
         specular: gl.getUniformLocation(this.program, "u_specular"),
         revealProgress: gl.getUniformLocation(this.program, "u_revealProgress"),
@@ -734,7 +736,7 @@
       gl.uniform1f(this.u.bevelDepth, lens.options.bevelDepth);
       gl.uniform1f(this.u.bevelWidth, lens.options.bevelWidth);
       gl.uniform1f(this.u.frost, lens.options.frost);
-      gl.uniform1f(this.u.radius, lens.radiusGl);
+      gl.uniform4fv(this.u.radii, lens.radiiGl);
       gl.uniform1i(this.u.specular, lens.options.specular ? 1 : 0);
       gl.uniform1f(this.u.revealProgress, lens._revealProgress || 1.0);
       gl.uniform1i(this.u.revealType, lens.revealTypeIndex || 0);
@@ -1415,6 +1417,8 @@
       this.rectPx = null;
       this.radiusGl = 0;
       this.radiusCss = 0;
+      this.radiiGl = [0, 0, 0, 0];
+      this.radiiCss = [0, 0, 0, 0];
       this.revealTypeIndex = this.options.reveal === "fade" ? 1 : 0;
       this._revealProgress = this.revealTypeIndex === 0 ? 1 : 0;
       this.tiltX = 0;
@@ -1476,19 +1480,33 @@
       };
 
       const style = window.getComputedStyle(this.el);
-      const brRaw = style.borderTopLeftRadius.split(" ")[0];
-      const isPct = brRaw.trim().endsWith("%");
-      let brPx;
-      if (isPct) {
-        const pct = parseFloat(brRaw);
-        brPx = (Math.min(rect.width, rect.height) * pct) / 100;
-      } else {
-        brPx = parseFloat(brRaw);
-      }
-      const maxAllowedCss = Math.min(rect.width, rect.height) * 0.5;
-      this.radiusCss = Math.min(brPx, maxAllowedCss);
+      const corners = [
+        style.borderTopRightRadius,     // index 0 -> vec4.x (TR)
+        style.borderBottomRightRadius,  // index 1 -> vec4.y (BR)
+        style.borderTopLeftRadius,      // index 2 -> vec4.z (TL)
+        style.borderBottomLeftRadius    // index 3 -> vec4.w (BL)
+      ];
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const maxAllowedCss = Math.min(rect.width, rect.height) * 0.5;
+
+      this.radiiCss = corners.map(val => {
+        if (!val) return 0;
+        const raw = val.split(" ")[0];
+        const isPct = raw.trim().endsWith("%");
+        let px;
+        if (isPct) {
+          const pct = parseFloat(raw);
+          px = (Math.min(rect.width, rect.height) * pct) / 100;
+        } else {
+          px = parseFloat(raw);
+        }
+        return Math.min(px, maxAllowedCss);
+      });
+
+      this.radiiGl = this.radiiCss.map(r => r * dpr);
+      // Fallback for single-value consumers
+      this.radiusCss = this.radiiCss[2];
       this.radiusGl = this.radiusCss * dpr;
 
       if (this._shadowSyncFn) {
@@ -1585,7 +1603,7 @@
         this._shadowEl.style.top = `${r.top}px`;
         this._shadowEl.style.width = `${r.width}px`;
         this._shadowEl.style.height = `${r.height}px`;
-        this._shadowEl.style.borderRadius = `${this.radiusCss}px`;
+        this._shadowEl.style.borderRadius = `${this.radiiCss[2]}px ${this.radiiCss[0]}px ${this.radiiCss[1]}px ${this.radiiCss[3]}px`;
       };
 
       if (enabled) {
@@ -1941,7 +1959,7 @@
           this._baseRect = this._baseRect || this.el.getBoundingClientRect();
         }
         const r = this._baseRect || this.el.getBoundingClientRect();
-        const radius = `${this.radiusCss}px`;
+        const radius = `${this.radiiCss[2]}px ${this.radiiCss[0]}px ${this.radiiCss[1]}px ${this.radiiCss[3]}px`;
         this._mirror.style.clipPath = `inset(${r.top}px ${
           innerWidth - r.right
         }px ${innerHeight - r.bottom}px ${r.left}px round ${radius})`;

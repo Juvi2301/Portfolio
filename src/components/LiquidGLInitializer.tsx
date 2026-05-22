@@ -114,14 +114,14 @@ const TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
 };
 
 const PROJECT_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
-  ...EXPERIENCE_CARD_LIQUID_GL_OPTIONS,
+  ...ABOUT_CARD_LIQUID_GL_OPTIONS,
   target: ".project-card-lens",
-  refraction: 0.01,
-  bevelDepth: 0.03,
-  bevelWidth: 0.12,
-  frost: 1.5,
+  bevelDepth: 0.04,
+  bevelWidth: 0.15,
+  frost: 2.4,
   shadow: false,
-  specular: false,
+  specular: true,
+  reveal: "none",
 };
 
 const CONTACT_FOOTER_LIQUID_GL_OPTIONS: LiquidGLOptions = {
