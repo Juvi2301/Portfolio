@@ -18,7 +18,10 @@ export default function Contact() {
               Contact for Full-stack development, API architecture, and modern web solutions.
             </p>
             <button className="contact-send-btn">
-              Send Message <span className="arrow">▸</span>
+              <span className="contact-send-btn-lens" aria-hidden="true" />
+              <span className="contact-send-btn-label" data-liquid-ignore>
+                Send Message <span className="arrow">▸</span>
+              </span>
             </button>
           </div>
 

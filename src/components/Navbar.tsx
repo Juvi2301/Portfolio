@@ -5,14 +5,15 @@ export default function Navbar() {
   return (
     <div className="nav-wrapper">
       <nav className="nav-container">
-        <Link href="/" className="nav-logo">
+        <Link href="#home" className="nav-logo">
           <img src="/pritheeve-logo.png" alt="Pritheeve" className="nav-logo-image" />
         </Link>
         
         <ul className="nav-links">
-          <li><Link href="/" className="active">Home</Link></li>
+          <li><Link href="#home" className="active">Home</Link></li>
           <li><Link href="#about">About</Link></li>
           <li><Link href="#experience">Experience</Link></li>
+          <li><Link href="#projects">Projects</Link></li>
           <li><Link href="#technical-skills">Skills</Link></li>
           <li><Link href="#contact">Contact</Link></li>
         </ul>
