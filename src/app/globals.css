@@ -2118,3 +2118,39 @@ canvas[data-liquid-ignore] {
   filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.2));
 }
 
+/* ==========================================================================
+   Liquid Glass Snapshot Capture — Hide foreground during html2canvas pass
+   When body[data-liquid-capturing] is set (briefly ~200ms during snapshot),
+   all text/content is hidden so the WebGL texture ONLY captures backgrounds.
+   This prevents text pixels from baking in as white noise on mobile/tablet.
+   ========================================================================== */
+body[data-liquid-capturing] .hero-text-content,
+body[data-liquid-capturing] .about-left,
+body[data-liquid-capturing] .about-card-content,
+body[data-liquid-capturing] .experience-title-wrapper,
+body[data-liquid-capturing] .experience-card-content,
+body[data-liquid-capturing] .technical-skills-title-wrapper,
+body[data-liquid-capturing] .technical-skill-card-content,
+body[data-liquid-capturing] .projects-title-wrapper,
+body[data-liquid-capturing] .project-card-content,
+body[data-liquid-capturing] .contact-left,
+body[data-liquid-capturing] .contact-form-content,
+body[data-liquid-capturing] .contact-footer-content,
+body[data-liquid-capturing] .nav-content,
+body[data-liquid-capturing] .stat-number,
+body[data-liquid-capturing] .liquid-glass-badge,
+body[data-liquid-capturing] h1,
+body[data-liquid-capturing] h2,
+body[data-liquid-capturing] h3,
+body[data-liquid-capturing] h4,
+body[data-liquid-capturing] p,
+body[data-liquid-capturing] a,
+body[data-liquid-capturing] span:not([class*="lens"]):not([aria-hidden]),
+body[data-liquid-capturing] svg,
+body[data-liquid-capturing] input,
+body[data-liquid-capturing] textarea,
+body[data-liquid-capturing] label,
+body[data-liquid-capturing] button {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}

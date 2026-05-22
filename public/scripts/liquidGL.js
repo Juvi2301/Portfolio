@@ -414,7 +414,11 @@
       if (this._capturing || typeof html2canvas === "undefined") return;
       this._capturing = true;
 
+      // Signal CSS to hide text/content so the texture only captures backgrounds
+      document.body.setAttribute("data-liquid-capturing", "");
+
       const undos = [];
+      undos.push(() => document.body.removeAttribute("data-liquid-capturing"));
 
       const attemptCapture = async (
         attempt = 1,
