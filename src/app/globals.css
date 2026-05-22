@@ -48,7 +48,7 @@ body {
   top: 30px;
   left: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 9999;
   display: flex;
   justify-content: center;
   padding: 0 var(--page-gutter);
@@ -778,7 +778,7 @@ body {
 .experience-section {
   position: relative;
   z-index: 120;
-  padding: 100px var(--page-gutter) 120px;
+  padding: 100px var(--page-gutter) 20px;
   scroll-margin-top: 130px;
 }
 
@@ -1203,7 +1203,7 @@ body {
 .projects-section {
   position: relative;
   z-index: 120;
-  padding: 100px var(--page-gutter);
+  padding: 60px var(--page-gutter) 100px;
   scroll-margin-top: 130px;
 }
 
