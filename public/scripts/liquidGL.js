@@ -402,12 +402,10 @@
     /* ----------------------------- */
     _resizeCanvas() {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const width = Math.max(1, Math.round(innerWidth));
-      const height = Math.max(1, Math.round(innerHeight));
-      this.canvas.width = Math.max(1, Math.round(width * dpr));
-      this.canvas.height = Math.max(1, Math.round(height * dpr));
-      this.canvas.style.width = `${width}px`;
-      this.canvas.style.height = `${height}px`;
+      this.canvas.width = innerWidth * dpr;
+      this.canvas.height = innerHeight * dpr;
+      this.canvas.style.width = `${innerWidth}px`;
+      this.canvas.style.height = `${innerHeight}px`;
       this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     }
 
@@ -485,34 +483,6 @@
           };
 
           const sanitizeClone = (doc) => {
-            const styleEl = doc.createElement("style");
-            styleEl.textContent = `
-              [data-liquid-ignore],
-              [data-liquid-ignore] *,
-              h1, h2, h3, h4, h5, h6,
-              p, a, li, label, small, strong, em,
-              input, textarea, select, button,
-              svg, img, picture, canvas, video {
-                color: transparent !important;
-                -webkit-text-fill-color: transparent !important;
-                text-shadow: none !important;
-                filter: none !important;
-                box-shadow: none !important;
-                caret-color: transparent !important;
-              }
-
-              svg, img, picture, canvas, video {
-                opacity: 0 !important;
-              }
-
-              input::placeholder,
-              textarea::placeholder {
-                color: transparent !important;
-                -webkit-text-fill-color: transparent !important;
-              }
-            `;
-            doc.head.appendChild(styleEl);
-
             doc.querySelectorAll("*").forEach((node) => {
               if (!(node instanceof doc.defaultView.HTMLElement)) return;
               const style = doc.defaultView.getComputedStyle(node);
@@ -520,12 +490,6 @@
 
               node.style.backdropFilter = "none";
               node.style.webkitBackdropFilter = "none";
-              node.style.textShadow = "none";
-
-              if (node.hasAttribute("data-liquid-ignore")) {
-                node.style.color = "transparent";
-                node.style.webkitTextFillColor = "transparent";
-              }
 
               if (
                 rect.width <= 0 ||
@@ -756,18 +720,7 @@
       const w = rect.width * dpr;
       const h = rect.height * dpr;
 
-      const clippedX = Math.max(0, Math.round(x));
-      const clippedY = Math.max(0, Math.round(y));
-      const clippedRight = Math.min(this.canvas.width, Math.round(x + w));
-      const clippedTop = Math.min(this.canvas.height, Math.round(y + h));
-      const clippedW = clippedRight - clippedX;
-      const clippedH = clippedTop - clippedY;
-
-      if (clippedW <= 0 || clippedH <= 0) return;
-
-      gl.viewport(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
-      gl.enable(gl.SCISSOR_TEST);
-      gl.scissor(clippedX, clippedY, clippedW, clippedH);
+      gl.viewport(x, y, w, h);
       gl.uniform2f(this.u.res, w, h);
 
       const docX = rect.left - this.snapshotTarget.getBoundingClientRect().left;
@@ -805,7 +758,6 @@
       gl.uniform1f(this.u.tiltY, lens.tiltY || 0);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
-      gl.disable(gl.SCISSOR_TEST);
     }
 
     /* ----------------------------- */
