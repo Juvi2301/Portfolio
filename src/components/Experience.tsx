@@ -25,7 +25,7 @@ export default function Experience() {
   return (
     <section id="experience" className="experience-section">
       <div className="experience-container">
-        <div className="experience-title-wrapper">
+        <div className="experience-title-wrapper" data-liquid-ignore>
           <h2 className="experience-title">Experience</h2>
           <div className="experience-divider"></div>
         </div>
