@@ -31,7 +31,7 @@ export default function TechnicalSkills() {
   return (
     <section id="technical-skills" className="technical-skills-section">
       <div className="technical-skills-container">
-        <div className="technical-skills-title-wrapper">
+        <div className="technical-skills-title-wrapper" data-liquid-ignore>
           <h2 className="technical-skills-title">Technical Skills</h2>
           <div className="technical-skills-divider"></div>
         </div>

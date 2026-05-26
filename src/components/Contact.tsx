@@ -4,7 +4,7 @@ export default function Contact() {
       <div className="container contact-container">
         <div className="contact-main">
           {/* Left Column: Text & CTA */}
-          <div className="contact-left">
+          <div className="contact-left" data-liquid-ignore>
             <div className="contact-subtitle-wrapper">
               <span className="contact-subtitle">Get in Touch</span>
               <div className="contact-divider"></div>
