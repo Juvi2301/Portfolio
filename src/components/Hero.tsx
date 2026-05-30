@@ -51,7 +51,7 @@ export default function Hero() {
         </div>
 
         {/* Text Content (Left) */}
-        <div className="hero-text-content" data-liquid-ignore>
+        <div className="hero-text-content">
           <div className="hero-divider"></div>
           <h1 className="hero-title">
             I&apos;m Pritheeve, a<br />Software Engineer

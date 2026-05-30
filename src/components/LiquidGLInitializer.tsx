@@ -71,11 +71,11 @@ const ICON_LIQUID_GL_OPTIONS: LiquidGLOptions = {
 const STAT_BADGE_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   ...ICON_LIQUID_GL_OPTIONS,
   target: ".liquid-glass-badge-lens",
-  bevelDepth: 0.025,
-  bevelWidth: 0.13,
-  frost: 0.55,
+  bevelDepth: 0.06,
+  bevelWidth: 0.18,
+  frost: 1.4,
   shadow: true,
-  specular: false,
+  specular: true,
 };
 
 const ABOUT_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
@@ -85,7 +85,7 @@ const ABOUT_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   bevelWidth: 0.16,
   frost: 2.8,
   shadow: true,
-  specular: false,
+  specular: true,
   reveal: "none",
 };
 
@@ -108,9 +108,9 @@ const EXPERIENCE_NODE_LIQUID_GL_OPTIONS: LiquidGLOptions = {
 const TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   ...ABOUT_CARD_LIQUID_GL_OPTIONS,
   target: ".technical-skill-card-lens",
-  bevelDepth: 0.025,
-  bevelWidth: 0.12,
-  frost: 0.8,
+  bevelDepth: 0.034,
+  bevelWidth: 0.13,
+  frost: 2,
 };
 
 const PROJECT_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
@@ -120,7 +120,7 @@ const PROJECT_CARD_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   bevelWidth: 0.15,
   frost: 2.4,
   shadow: false,
-  specular: false,
+  specular: true,
   reveal: "none",
 };
 
@@ -140,7 +140,7 @@ const CONTACT_FORM_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   bevelWidth: 0.15,
   frost: 2.4,
   shadow: false,
-  specular: false,
+  specular: true,
   reveal: "none",
 };
 
@@ -202,7 +202,6 @@ export default function LiquidGLInitializer() {
     window.requestAnimationFrame(() => {
       cleanupLiquidGL();
       window.__portfolioLiquidGLReady__ = true;
-
       window.liquidGL?.(NAV_LIQUID_GL_OPTIONS);
       window.liquidGL?.(ICON_LIQUID_GL_OPTIONS);
       window.liquidGL?.(STAT_BADGE_LIQUID_GL_OPTIONS);
@@ -227,7 +226,7 @@ export default function LiquidGLInitializer() {
       />
       <Script
         id="liquid-gl"
-        src="/scripts/liquidGL.js?v=scroll-reflection-fix-6"
+        src="/scripts/liquidGL.js"
         strategy="afterInteractive"
         onReady={handleInit}
       />

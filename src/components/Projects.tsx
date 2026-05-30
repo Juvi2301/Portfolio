@@ -31,7 +31,7 @@ export default function Projects() {
   return (
     <section id="projects" className="projects-section">
       <div className="projects-container">
-        <div className="projects-title-wrapper" data-liquid-ignore>
+        <div className="projects-title-wrapper">
           <h2 className="projects-title">Projects</h2>
           <div className="projects-divider"></div>
         </div>

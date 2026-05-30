@@ -7,7 +7,7 @@ function StatNumber({ id, value }: { id: string; value: string }) {
   const lowerRimGradientId = `${id}-lower-rim`;
 
   return (
-    <svg className="stat-number" viewBox="0 0 168 104" role="img" aria-label={value} data-liquid-ignore>
+    <svg className="stat-number" viewBox="0 0 168 104" role="img" aria-label={value}>
       <defs>
         <filter id={filterId} x="-18%" y="-22%" width="136%" height="150%">
           <feTurbulence
@@ -95,7 +95,7 @@ export default function About() {
         
         {/* Left Side: Stats */}
         <div className="about-left">
-          <div className="about-title-wrapper" data-liquid-ignore>
+          <div className="about-title-wrapper">
             <h2 className="about-title">About Me</h2>
             <div className="about-divider"></div>
           </div>

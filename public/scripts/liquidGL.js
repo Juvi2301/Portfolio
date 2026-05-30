@@ -459,17 +459,6 @@
           this.canvas.style.visibility = "hidden";
           undos.push(() => (this.canvas.style.visibility = "visible"));
 
-          const ignoredContent = Array.from(
-            document.querySelectorAll("[data-liquid-ignore]")
-          );
-          ignoredContent.forEach((element) => {
-            const previousVisibility = element.style.visibility;
-            element.style.visibility = "hidden";
-            undos.push(() => {
-              element.style.visibility = previousVisibility;
-            });
-          });
-
           const lensElements = this.lenses
             .flatMap((lens) => [lens.el, lens._shadowEl])
             .filter(Boolean);
@@ -480,10 +469,7 @@
               return true;
             }
             const style = window.getComputedStyle(element);
-            if (
-              style.position === "fixed" &&
-              !element.classList.contains("bg-gradients")
-            ) {
+            if (style.position === "fixed") {
               return true;
             }
             return (
@@ -733,16 +719,8 @@
       gl.viewport(x, y, w, h);
       gl.uniform2f(this.u.res, w, h);
 
-      const isDocumentSnapshot =
-        this.snapshotTarget === document.body ||
-        this.snapshotTarget === document.documentElement;
-      const targetRect = this.snapshotTarget.getBoundingClientRect();
-      const docX = isDocumentSnapshot
-        ? rect.left + window.scrollX
-        : rect.left - targetRect.left + this.snapshotTarget.scrollLeft;
-      const docY = isDocumentSnapshot
-        ? rect.top + window.scrollY
-        : rect.top - targetRect.top + this.snapshotTarget.scrollTop;
+      const docX = rect.left - this.snapshotTarget.getBoundingClientRect().left;
+      const docY = rect.top - this.snapshotTarget.getBoundingClientRect().top;
       const leftUV = (docX * this.scaleFactor) / this.textureWidth;
       const topUV = (docY * this.scaleFactor) / this.textureHeight;
       const wUV = (rect.width * this.scaleFactor) / this.textureWidth;
@@ -986,9 +964,7 @@
             removeContainer: true,
             logging: false,
             ignoreElements: (n) =>
-              n.tagName === "CANVAS" ||
-              n.hasAttribute("data-liquid-ignore") ||
-              (n.closest && n.closest("[data-liquid-ignore]")),
+              n.tagName === "CANVAS" || n.hasAttribute("data-liquid-ignore"),
           })
             .then((cv) => {
               if (cv.width > 0 && cv.height > 0) {
