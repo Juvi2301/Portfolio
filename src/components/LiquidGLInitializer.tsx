@@ -193,7 +193,17 @@ function cleanupLiquidGL() {
 }
 
 function buildMobileOptions(opts: LiquidGLOptions): LiquidGLOptions {
-  return { ...opts, resolution: 1, shadow: false };
+  return {
+    ...opts,
+    resolution: 1,
+    shadow: false,
+    // Zero out refraction on mobile — the canvas snapshot can be offset when
+    // the mobile browser resizes (address bar), causing distorted backgrounds
+    refraction: 0,
+    // Scale down bevel values so the reflection ring isn't oversized on small elements
+    bevelDepth: opts.bevelDepth != null ? opts.bevelDepth * 0.65 : opts.bevelDepth,
+    bevelWidth: opts.bevelWidth != null ? opts.bevelWidth * 0.75 : opts.bevelWidth,
+  };
 }
 
 function initAllLenses() {
@@ -218,20 +228,34 @@ function initAllLenses() {
 
 export default function LiquidGLInitializer() {
   useEffect(() => {
-    // Reinit on orientation change so the canvas snapshot stays aligned
     let resizeTimer: ReturnType<typeof setTimeout>;
+    let lastWidth = window.innerWidth;
+
     const handleResize = () => {
+      // Ignore height-only changes — the mobile browser address bar
+      // constantly hides/shows, which changes innerHeight but not innerWidth.
+      // Only reinit when the actual layout width changes (e.g. orientation flip).
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
+
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         window.__portfolioLiquidGLReady__ = false;
         window.requestAnimationFrame(initAllLenses);
-      }, 250);
+      }, 300);
     };
 
-    window.addEventListener("orientationchange", handleResize);
+    window.addEventListener("orientationchange", () => {
+      // orientationchange fires before the new dimensions are settled
+      setTimeout(() => {
+        lastWidth = window.innerWidth;
+        window.__portfolioLiquidGLReady__ = false;
+        window.requestAnimationFrame(initAllLenses);
+      }, 400);
+    });
     window.addEventListener("resize", handleResize);
+
     return () => {
-      window.removeEventListener("orientationchange", handleResize);
       window.removeEventListener("resize", handleResize);
       clearTimeout(resizeTimer);
       cleanupLiquidGL();
