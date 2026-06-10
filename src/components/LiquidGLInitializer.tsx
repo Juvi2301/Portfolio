@@ -197,12 +197,16 @@ function buildMobileOptions(opts: LiquidGLOptions): LiquidGLOptions {
     ...opts,
     resolution: 1,
     shadow: false,
-    // Zero out refraction on mobile — the canvas snapshot can be offset when
-    // the mobile browser resizes (address bar), causing distorted backgrounds
+    // Zero refraction on mobile — snapshot can be offset by address-bar resizes
     refraction: 0,
-    // Scale down bevel values so the reflection ring isn't oversized on small elements
-    bevelDepth: opts.bevelDepth != null ? opts.bevelDepth * 0.65 : opts.bevelDepth,
-    bevelWidth: opts.bevelWidth != null ? opts.bevelWidth * 0.75 : opts.bevelWidth,
+    // Disable magnify so the lens doesn't pull in distant page content
+    magnify: 1,
+    // Heavy frost blur kills "ghost text" — recognizable text from other
+    // sections bleeding into the snapshot becomes pure soft blur
+    frost: Math.max((opts.frost ?? 2) * 4, 12),
+    // Scale bevel down so the reflection ring stays proportional on small elements
+    bevelDepth: opts.bevelDepth != null ? opts.bevelDepth * 0.55 : opts.bevelDepth,
+    bevelWidth: opts.bevelWidth != null ? opts.bevelWidth * 0.7 : opts.bevelWidth,
   };
 }
 
