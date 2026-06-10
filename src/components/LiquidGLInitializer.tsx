@@ -43,6 +43,10 @@ declare global {
   }
 }
 
+function isMobileViewport() {
+  return typeof window !== "undefined" && window.innerWidth < 768;
+}
+
 const NAV_LIQUID_GL_OPTIONS: LiquidGLOptions = {
   snapshot: "body",
   target: ".nav-container",
@@ -188,51 +192,46 @@ function cleanupLiquidGL() {
   window.__portfolioLiquidGLReady__ = false;
 }
 
-function isMobileViewport() {
-  return typeof window !== "undefined" && window.innerWidth < 768;
+function buildMobileOptions(opts: LiquidGLOptions): LiquidGLOptions {
+  return { ...opts, resolution: 1, shadow: false };
 }
 
 function initAllLenses() {
   if (!window.liquidGL) return;
   cleanupLiquidGL();
   window.__portfolioLiquidGLReady__ = true;
-  window.liquidGL?.(NAV_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(ICON_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(STAT_BADGE_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(ABOUT_CARD_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(EXPERIENCE_CARD_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(EXPERIENCE_NODE_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(PROJECT_CARD_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(CONTACT_FOOTER_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(CONTACT_FORM_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(CONTACT_SEND_BTN_LIQUID_GL_OPTIONS);
-  window.liquidGL?.(CONTACT_CONTROL_LIQUID_GL_OPTIONS);
+  const mobile = isMobileViewport();
+  const opt = mobile ? buildMobileOptions : (o: LiquidGLOptions) => o;
+  window.liquidGL?.(opt(NAV_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(ICON_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(STAT_BADGE_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(ABOUT_CARD_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(EXPERIENCE_CARD_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(EXPERIENCE_NODE_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(PROJECT_CARD_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(CONTACT_FOOTER_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(CONTACT_FORM_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(CONTACT_SEND_BTN_LIQUID_GL_OPTIONS));
+  window.liquidGL?.(opt(CONTACT_CONTROL_LIQUID_GL_OPTIONS));
 }
 
 export default function LiquidGLInitializer() {
   useEffect(() => {
-    // Re-initialize when switching between mobile and desktop (e.g. rotation, resize)
-    let lastWasMobile = isMobileViewport();
+    // Reinit on orientation change so the canvas snapshot stays aligned
     let resizeTimer: ReturnType<typeof setTimeout>;
-
     const handleResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        const nowMobile = isMobileViewport();
-        if (nowMobile !== lastWasMobile) {
-          lastWasMobile = nowMobile;
-          if (nowMobile) {
-            cleanupLiquidGL();
-          } else {
-            window.requestAnimationFrame(initAllLenses);
-          }
-        }
-      }, 200);
+        window.__portfolioLiquidGLReady__ = false;
+        window.requestAnimationFrame(initAllLenses);
+      }, 250);
     };
 
+    window.addEventListener("orientationchange", handleResize);
     window.addEventListener("resize", handleResize);
     return () => {
+      window.removeEventListener("orientationchange", handleResize);
       window.removeEventListener("resize", handleResize);
       clearTimeout(resizeTimer);
       cleanupLiquidGL();
@@ -242,10 +241,6 @@ export default function LiquidGLInitializer() {
   const handleInit = () => {
     if (typeof window === "undefined" || !window.liquidGL) return;
     if (window.__portfolioLiquidGLReady__) return;
-
-    // Skip WebGL liquidGL on mobile — CSS backdrop-filter provides the glass effect
-    if (isMobileViewport()) return;
-
     window.__portfolioLiquidGLReady__ = true;
     window.requestAnimationFrame(initAllLenses);
   };
