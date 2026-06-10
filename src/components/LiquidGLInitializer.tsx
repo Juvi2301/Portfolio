@@ -188,33 +188,66 @@ function cleanupLiquidGL() {
   window.__portfolioLiquidGLReady__ = false;
 }
 
+function isMobileViewport() {
+  return typeof window !== "undefined" && window.innerWidth < 768;
+}
+
+function initAllLenses() {
+  if (!window.liquidGL) return;
+  cleanupLiquidGL();
+  window.__portfolioLiquidGLReady__ = true;
+  window.liquidGL?.(NAV_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(ICON_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(STAT_BADGE_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(ABOUT_CARD_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(EXPERIENCE_CARD_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(EXPERIENCE_NODE_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(PROJECT_CARD_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(CONTACT_FOOTER_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(CONTACT_FORM_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(CONTACT_SEND_BTN_LIQUID_GL_OPTIONS);
+  window.liquidGL?.(CONTACT_CONTROL_LIQUID_GL_OPTIONS);
+}
+
 export default function LiquidGLInitializer() {
   useEffect(() => {
-    return cleanupLiquidGL;
+    // Re-initialize when switching between mobile and desktop (e.g. rotation, resize)
+    let lastWasMobile = isMobileViewport();
+    let resizeTimer: ReturnType<typeof setTimeout>;
+
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const nowMobile = isMobileViewport();
+        if (nowMobile !== lastWasMobile) {
+          lastWasMobile = nowMobile;
+          if (nowMobile) {
+            cleanupLiquidGL();
+          } else {
+            window.requestAnimationFrame(initAllLenses);
+          }
+        }
+      }, 200);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimer);
+      cleanupLiquidGL();
+    };
   }, []);
 
   const handleInit = () => {
     if (typeof window === "undefined" || !window.liquidGL) return;
-
     if (window.__portfolioLiquidGLReady__) return;
-    window.__portfolioLiquidGLReady__ = true;
 
-    window.requestAnimationFrame(() => {
-      cleanupLiquidGL();
-      window.__portfolioLiquidGLReady__ = true;
-      window.liquidGL?.(NAV_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(ICON_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(STAT_BADGE_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(ABOUT_CARD_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(EXPERIENCE_CARD_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(EXPERIENCE_NODE_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(TECHNICAL_SKILL_CARD_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(PROJECT_CARD_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(CONTACT_FOOTER_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(CONTACT_FORM_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(CONTACT_SEND_BTN_LIQUID_GL_OPTIONS);
-      window.liquidGL?.(CONTACT_CONTROL_LIQUID_GL_OPTIONS);
-    });
+    // Skip WebGL liquidGL on mobile — CSS backdrop-filter provides the glass effect
+    if (isMobileViewport()) return;
+
+    window.__portfolioLiquidGLReady__ = true;
+    window.requestAnimationFrame(initAllLenses);
   };
 
   return (
