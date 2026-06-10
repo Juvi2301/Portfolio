@@ -195,18 +195,14 @@ function cleanupLiquidGL() {
 function buildMobileOptions(opts: LiquidGLOptions): LiquidGLOptions {
   return {
     ...opts,
-    resolution: 1,
-    shadow: false,
-    // Zero refraction on mobile — snapshot can be offset by address-bar resizes
+    // Keep full resolution so text in the snapshot doesn't smear into ghosts
+    resolution: 2,
+    // Zero refraction so the snapshot isn't displaced/distorted under the lens
     refraction: 0,
-    // Disable magnify so the lens doesn't pull in distant page content
+    // No magnification — don't pull in content from elsewhere on the page
     magnify: 1,
-    // Heavy frost blur kills "ghost text" — recognizable text from other
-    // sections bleeding into the snapshot becomes pure soft blur
-    frost: Math.max((opts.frost ?? 2) * 4, 12),
-    // Scale bevel down so the reflection ring stays proportional on small elements
-    bevelDepth: opts.bevelDepth != null ? opts.bevelDepth * 0.55 : opts.bevelDepth,
-    bevelWidth: opts.bevelWidth != null ? opts.bevelWidth * 0.7 : opts.bevelWidth,
+    // Keep original frost (user's chosen blur level)
+    // Keep shadow/specular as configured for the full liquid glass look
   };
 }
 
