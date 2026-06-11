@@ -102,10 +102,56 @@ function calculateRefractionProfile(
   return profile;
 }
 
+type Radii = readonly [number, number, number, number]; // TL, TR, BR, BL
+
+/**
+ * Walk every pixel and project it into a (r, x, y) local frame depending on
+ * whether it sits in a corner or edge of the asymmetric rounded rectangle.
+ *
+ * Corners use their own radius. Edges use a "virtual radius" = bezelWidth + 1
+ * so the bezel-depth math (fromSide = r - dist) still produces a clean strip
+ * of constant thickness along the edge.
+ */
+function localizePixel(
+  x1: number,
+  y1: number,
+  w: number,
+  h: number,
+  radii: Radii,
+  bezelWidth: number
+): { r: number; x: number; y: number } | null {
+  const [rTL, rTR, rBR, rBL] = radii;
+  // Corners first
+  if (x1 < rTL && y1 < rTL) return { r: rTL, x: x1 - rTL, y: y1 - rTL };
+  if (x1 >= w - rTR && y1 < rTR) return { r: rTR, x: x1 - (w - rTR), y: y1 - rTR };
+  if (x1 >= w - rBR && y1 >= h - rBR) return { r: rBR, x: x1 - (w - rBR), y: y1 - (h - rBR) };
+  if (x1 < rBL && y1 >= h - rBL) return { r: rBL, x: x1 - rBL, y: y1 - (h - rBL) };
+
+  // Edges — use virtual r so the bezel strip stays constant-thickness
+  const er = bezelWidth + 1;
+  // Top edge
+  if (y1 < bezelWidth && x1 >= rTL && x1 < w - rTR) {
+    return { r: er, x: 0, y: y1 - er };
+  }
+  // Bottom edge
+  if (y1 >= h - bezelWidth && x1 >= rBL && x1 < w - rBR) {
+    return { r: er, x: 0, y: y1 - (h - er) };
+  }
+  // Left edge
+  if (x1 < bezelWidth && y1 >= rTL && y1 < h - rBL) {
+    return { r: er, x: x1 - er, y: 0 };
+  }
+  // Right edge
+  if (x1 >= w - bezelWidth && y1 >= rTR && y1 < h - rBR) {
+    return { r: er, x: x1 - (w - er), y: 0 };
+  }
+  return null;
+}
+
 function generateDisplacementMap(
   w: number,
   h: number,
-  radius: number,
+  radii: Radii,
   bezelWidth: number,
   profile: Float64Array,
   maxDisp: number
@@ -124,18 +170,16 @@ function generateDisplacementMap(
     d[i + 3] = 255;
   }
 
-  const r = radius;
-  const rSq = r * r;
-  const r1Sq = (r + 1) ** 2;
-  const rBSq = Math.max(r - bezelWidth, 0) ** 2;
-  const wB = w - r * 2;
-  const hB = h - r * 2;
   const S = profile.length;
 
   for (let y1 = 0; y1 < h; y1++) {
     for (let x1 = 0; x1 < w; x1++) {
-      const x = x1 < r ? x1 - r : x1 >= w - r ? x1 - r - wB : 0;
-      const y = y1 < r ? y1 - r : y1 >= h - r ? y1 - r - hB : 0;
+      const loc = localizePixel(x1, y1, w, h, radii, bezelWidth);
+      if (!loc) continue;
+      const { r, x, y } = loc;
+      const rSq = r * r;
+      const r1Sq = (r + 1) ** 2;
+      const rBSq = Math.max(r - bezelWidth, 0) ** 2;
       const dSq = x * x + y * y;
       if (dSq > r1Sq || dSq < rBSq) continue;
       const dist = Math.sqrt(dSq);
@@ -160,7 +204,7 @@ function generateDisplacementMap(
 function generateSpecularMap(
   w: number,
   h: number,
-  radius: number,
+  radii: Radii,
   bezelWidth: number,
   angle = Math.PI / 3
 ): string {
@@ -173,18 +217,16 @@ function generateSpecularMap(
   const d = img.data;
   d.fill(0);
 
-  const r = radius;
-  const rSq = r * r;
-  const r1Sq = (r + 1) ** 2;
-  const rBSq = Math.max(r - bezelWidth, 0) ** 2;
-  const wB = w - r * 2;
-  const hB = h - r * 2;
   const sv = [Math.cos(angle), Math.sin(angle)];
 
   for (let y1 = 0; y1 < h; y1++) {
     for (let x1 = 0; x1 < w; x1++) {
-      const x = x1 < r ? x1 - r : x1 >= w - r ? x1 - r - wB : 0;
-      const y = y1 < r ? y1 - r : y1 >= h - r ? y1 - r - hB : 0;
+      const loc = localizePixel(x1, y1, w, h, radii, bezelWidth);
+      if (!loc) continue;
+      const { r, x, y } = loc;
+      const rSq = r * r;
+      const r1Sq = (r + 1) ** 2;
+      const rBSq = Math.max(r - bezelWidth, 0) ** 2;
       const dSq = x * x + y * y;
       if (dSq > r1Sq || dSq < rBSq) continue;
       const dist = Math.sqrt(dSq);
@@ -209,20 +251,18 @@ function generateSpecularMap(
   return c.toDataURL();
 }
 
-function getElementRadius(el: HTMLElement): number {
+function getElementRadii(el: HTMLElement): Radii {
   const cs = window.getComputedStyle(el);
-  const candidates = [
-    cs.borderTopLeftRadius,
-    cs.borderTopRightRadius,
-    cs.borderBottomRightRadius,
-    cs.borderBottomLeftRadius,
-  ]
-    .map((v) => parseFloat(v))
-    .filter((v) => !Number.isNaN(v) && v > 0);
-  if (candidates.length === 0) return 12;
-  // Use the largest corner radius for the bezel (e.g. About card has a big
-  // top-left curve). Clamped later against element dimensions.
-  return Math.max(...candidates);
+  const parse = (v: string) => {
+    const n = parseFloat(v);
+    return Number.isNaN(n) || n <= 0 ? 0 : n;
+  };
+  return [
+    parse(cs.borderTopLeftRadius),
+    parse(cs.borderTopRightRadius),
+    parse(cs.borderBottomRightRadius),
+    parse(cs.borderBottomLeftRadius),
+  ] as const;
 }
 
 type LensState = {
@@ -260,11 +300,18 @@ export default function LiquidGlassFilter() {
       state.lastW = w;
       state.lastH = h;
 
-      const elemRadius = getElementRadius(el);
-      // Clamp bezel and radius the same way archisvaze does
-      const radius = Math.min(elemRadius, Math.min(w, h) / 2 - 1);
-      const bezel = Math.min(config.bezel, radius - 1, Math.min(w, h) / 2 - 1);
-      if (radius < 2 || bezel < 2) return;
+      const rawRadii = getElementRadii(el);
+      // Clamp each corner against the element's half-extent so a 60px corner
+      // on a tiny element falls back gracefully.
+      const halfMin = Math.min(w, h) / 2 - 1;
+      const radii = rawRadii.map((r) => Math.max(0, Math.min(r, halfMin))) as unknown as Radii;
+      const maxRadius = Math.max(...radii);
+      if (maxRadius < 2) return;
+      // Bezel can't be larger than the smallest non-zero corner — otherwise
+      // the bezel ring eats through to the inside of small corners.
+      const nonZeroRadii = radii.filter((r) => r > 0);
+      const minCornerR = nonZeroRadii.length > 0 ? Math.min(...nonZeroRadii) : maxRadius;
+      const bezel = Math.max(2, Math.min(config.bezel, minCornerR - 1, halfMin));
 
       const heightFn = SURFACE_FNS[config.surface] ?? SURFACE_FNS.convex_squircle;
       const profile = calculateRefractionProfile(
@@ -275,8 +322,8 @@ export default function LiquidGlassFilter() {
         128
       );
       const maxDisp = Math.max(...Array.from(profile).map(Math.abs)) || 1;
-      const dispUrl = generateDisplacementMap(w, h, radius, bezel, profile, maxDisp);
-      const specUrl = generateSpecularMap(w, h, radius, bezel * 2.5);
+      const dispUrl = generateDisplacementMap(w, h, radii, bezel, profile, maxDisp);
+      const specUrl = generateSpecularMap(w, h, radii, bezel * 2.5);
       const scale = maxDisp * config.scaleRatio;
 
       let filter = defs.querySelector(`#${state.filterId}`) as SVGFilterElement | null;

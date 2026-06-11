@@ -1131,19 +1131,17 @@ body {
   min-height: 374px;
   overflow: clip;
   border-radius: 74px 74px 0 0;
+  /* Neutral dark footer — subtle top highlight, no blue tint */
   background:
-    radial-gradient(circle at 78% 18%, rgba(7, 95, 228, 0.24), transparent 34%),
-    radial-gradient(circle at 18% 88%, rgba(7, 95, 228, 0.12), transparent 38%),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.034), rgba(7, 95, 228, 0.055) 42%, rgba(7, 95, 228, 0.13)),
-    rgba(255, 255, 255, 0.012);
-  border: 1px solid rgba(85, 156, 255, 0.16);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 18%),
+    linear-gradient(180deg, rgba(20, 24, 32, 0.65), rgba(8, 10, 14, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-bottom: 0;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -42px 70px rgba(7, 95, 228, 0.1),
-    0 -12px 36px rgba(0, 0, 0, 0.28);
+    0 -12px 36px rgba(0, 0, 0, 0.4);
 }
 
 .contact-footer-content {
