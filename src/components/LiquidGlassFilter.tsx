@@ -56,7 +56,7 @@ const DEFAULT_CONFIG: Required<GlassConfig> = {
 // Per-selector tuning. Smaller elements need smaller bezels so the
 // refraction doesn't dominate the whole shape.
 const SECTION_CONFIGS: Array<{ selector: string; config?: GlassConfig }> = [
-  { selector: ".nav-container", config: { bezel: 28, thickness: 60, blur: 2, cssBlur: 10 } },
+  { selector: ".nav-container", config: { bezel: 28, thickness: 60, blur: 1, cssBlur: 4 } },
   { selector: ".icon-wrapper", config: { bezel: 14, thickness: 28, ior: 1.6 } },
   { selector: ".btn-down", config: { bezel: 14, thickness: 30 } },
   { selector: ".liquid-glass-badge", config: { bezel: 16, thickness: 32 } },
