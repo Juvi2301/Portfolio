@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import LiquidGlassBadge from "./LiquidGlassBadge";
 
 function StatNumber({ id, value }: { id: string; value: string }) {
@@ -88,12 +91,64 @@ function StatNumber({ id, value }: { id: string; value: string }) {
   );
 }
 
+function useCountUp(target: number, start: boolean, duration = 1300) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!start) return;
+
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      setValue(target);
+      return;
+    }
+
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - t0) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+      setValue(Math.round(eased * target));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, start, duration]);
+
+  return value;
+}
+
 export default function About() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const years = useCountUp(2, inView);
+  const projects = useCountUp(5, inView);
+  const shown = (cls: string) => `${cls} about-reveal${inView ? " is-visible" : ""}`;
+
   return (
-    <section id="about" className="about-section">
+    <section id="about" className="about-section" ref={sectionRef}>
       <div className="about-container">
 
-        <div className="about-title-wrapper">
+        <div className={shown("about-title-wrapper")} style={{ transitionDelay: "0ms" }}>
           <h2 className="about-title">About Me</h2>
           <div className="about-divider"></div>
         </div>
@@ -102,29 +157,29 @@ export default function About() {
 
           {/* Left Side: Stats */}
           <div className="about-left">
-            <div className="stat-group">
-              <StatNumber id="experience-stat" value="2+" />
+            <div className={shown("stat-group")} style={{ transitionDelay: "120ms" }}>
+              <StatNumber id="experience-stat" value={`${years}+`} />
               <LiquidGlassBadge>Years Of Experience</LiquidGlassBadge>
             </div>
 
-            <div className="stat-group">
-              <StatNumber id="project-stat" value="5+" />
+            <div className={shown("stat-group")} style={{ transitionDelay: "220ms" }}>
+              <StatNumber id="project-stat" value={`${projects}+`} />
               <LiquidGlassBadge>Project Complete</LiquidGlassBadge>
             </div>
           </div>
 
           {/* Right Side: Text Card */}
-          <div className="about-right">
+          <div className={shown("about-right")} style={{ transitionDelay: "180ms" }}>
             <div className="about-card">
               <div className="about-card-content">
               <p className="about-lede">
-                I&apos;m a <span className="about-highlight">Software Engineer</span> with an HNDIT background in Information Technology, building full-stack web applications end to end.
+                I&apos;m an <span className="about-highlight">Associate Software Engineer</span> specializing in full-stack web development with the MERN stack &mdash; building production-grade applications from database to interface.
               </p>
               <p className="about-text">
-                I started at Yarl Ventures as an intern (Aug 2025 &ndash; Feb 2026), gaining hands-on experience in real-world development, teamwork, and shipping full-stack features.
+                After a six-month internship at Yarl Ventures, I joined the team full-time, contributing to production systems including an HR management platform, a learning management system, and a recruitment portal.
               </p>
               <p className="about-text">
-                Today I work there as an <span className="about-highlight">Associate Software Engineer</span> &mdash; building web apps, developing APIs, and refining user interfaces across the frontend and backend.
+                On the frontend I build responsive interfaces with <span className="about-highlight">React.js</span>, Tailwind CSS, and Ant Design. On the backend I design <span className="about-highlight">RESTful APIs</span> with Node.js, Express.js, and Prisma ORM &mdash; working across MongoDB, MySQL, and PostgreSQL, and implementing authentication and role-based access control in Agile teams.
               </p>
               <div className="about-status">
                 <span className="about-status-dot"></span>
