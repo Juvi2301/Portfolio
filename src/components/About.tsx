@@ -92,37 +92,48 @@ export default function About() {
   return (
     <section id="about" className="about-section">
       <div className="about-container">
-        
-        {/* Left Side: Stats */}
-        <div className="about-left">
-          <div className="about-title-wrapper">
-            <h2 className="about-title">About Me</h2>
-            <div className="about-divider"></div>
-          </div>
-          
-          <div className="stat-group">
-            <StatNumber id="experience-stat" value="2+" />
-            <LiquidGlassBadge>Years Of Experience</LiquidGlassBadge>
-          </div>
-          
-          <div className="stat-group">
-            <StatNumber id="project-stat" value="5+" />
-            <LiquidGlassBadge>Project Complete</LiquidGlassBadge>
-          </div>
+
+        <div className="about-title-wrapper">
+          <h2 className="about-title">About Me</h2>
+          <div className="about-divider"></div>
         </div>
 
-        {/* Right Side: Text Card */}
-        <div className="about-right">
-          <div className="about-card">
-            <div className="about-card-content">
-              <p className="about-text">
-                I am a Software Engineer with an HNDIT background in Information Technology. I completed my internship at Yarl Ventures from August 2025 to February 2026, where I gained practical experience in real-world software development, teamwork, and full-stack application development.
-              </p>
-              <p className="about-text">
-                Currently, I am working as an Associate Software Engineer at Yarl Ventures, focusing on building full-stack web applications, developing APIs, improving user interfaces, and strengthening my skills in frontend and backend technologies.
-              </p>
+        <div className="about-body">
+
+          {/* Left Side: Stats */}
+          <div className="about-left">
+            <div className="stat-group">
+              <StatNumber id="experience-stat" value="2+" />
+              <LiquidGlassBadge>Years Of Experience</LiquidGlassBadge>
+            </div>
+
+            <div className="stat-group">
+              <StatNumber id="project-stat" value="5+" />
+              <LiquidGlassBadge>Project Complete</LiquidGlassBadge>
             </div>
           </div>
+
+          {/* Right Side: Text Card */}
+          <div className="about-right">
+            <div className="about-card">
+              <div className="about-card-content">
+              <p className="about-lede">
+                I&apos;m a <span className="about-highlight">Software Engineer</span> with an HNDIT background in Information Technology, building full-stack web applications end to end.
+              </p>
+              <p className="about-text">
+                I started at Yarl Ventures as an intern (Aug 2025 &ndash; Feb 2026), gaining hands-on experience in real-world development, teamwork, and shipping full-stack features.
+              </p>
+              <p className="about-text">
+                Today I work there as an <span className="about-highlight">Associate Software Engineer</span> &mdash; building web apps, developing APIs, and refining user interfaces across the frontend and backend.
+              </p>
+              <div className="about-status">
+                <span className="about-status-dot"></span>
+                Currently @ Yarl Ventures &middot; Associate Software Engineer
+              </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>
