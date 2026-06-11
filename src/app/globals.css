@@ -148,6 +148,82 @@ body {
   overflow: hidden;
 }
 
+/*
+  Two blurred color blobs in the hero — directly modelled on the Figma
+  specs: solid colour ellipses with heavy Layer blur, positioned to
+  partially overflow the viewport on the right (top blob) and the left
+  (bottom blob).
+
+  Top-right blob — Figma: X 1045 Y 21, W 549.94 H 355.08, fill #184F8B 100%
+  Bottom-left blob — Figma: X -127 Y 782, W 549.94 H 355.08, fill #AFCCEE 50%
+*/
+.hero-section::before,
+.hero-section::after {
+  content: "";
+  position: absolute;
+  width: 550px;
+  height: 355px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(90px);
+  will-change: transform, opacity;
+}
+
+.hero-section::before {
+  /* Top-right: original Figma origin 1045/1440 ≈ 72.6% — keep the blob's
+     right edge past the viewport so it bleeds in from the side. */
+  top: 21px;
+  right: -150px;
+  background: rgba(24, 79, 139, 0.25); /* #184F8B at 25% */
+  animation: hero-glow-drift-tr 14s ease-in-out infinite;
+}
+
+.hero-section::after {
+  /* Bottom-left: original Figma origin -127 — protrudes from the left edge. */
+  bottom: 8vh;
+  left: -127px;
+  background: rgba(175, 204, 238, 0.12); /* #AFCCEE at 12% */
+  animation: hero-glow-drift-bl 18s ease-in-out infinite;
+}
+
+@keyframes hero-glow-drift-tr {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  33% {
+    transform: translate(-40px, 30px) scale(1.08);
+    opacity: 0.85;
+  }
+  66% {
+    transform: translate(20px, -20px) scale(0.95);
+    opacity: 1.1;
+  }
+}
+
+@keyframes hero-glow-drift-bl {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(50px, -40px) scale(1.12);
+    opacity: 1.2;
+  }
+  75% {
+    transform: translate(-20px, 25px) scale(0.92);
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-section::before,
+  .hero-section::after {
+    animation: none;
+  }
+}
+
 .hero-container {
   position: relative;
   width: 100%;
