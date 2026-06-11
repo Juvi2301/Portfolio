@@ -224,6 +224,16 @@ body {
   }
 }
 
+/* Hide the glow blobs on small devices — they cost a lot of GPU
+   (550px solid blob + 90px blur) and the hero looks cleaner without them
+   on a narrow viewport. */
+@media (max-width: 640px) {
+  .hero-section::before,
+  .hero-section::after {
+    display: none;
+  }
+}
+
 .hero-container {
   position: relative;
   width: 100%;
@@ -278,12 +288,66 @@ body {
 
 .hero-title {
   /* Fluid typography perfectly matching 56px at 978h */
-  font-size: clamp(2.5rem, 5.7vh, 4.5rem); 
+  font-size: clamp(2.5rem, 5.7vh, 4.5rem);
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 16px;
   letter-spacing: -0.02em;
   color: #ffffff;
+}
+
+/* Word-by-word fade-up entrance — each word lifts in from below */
+.hero-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(28px);
+  animation: hero-word-rise 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes hero-word-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Surrounding elements rise in sequence after the title finishes */
+.hero-divider {
+  opacity: 0;
+  animation: hero-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+}
+
+.hero-subtitle {
+  opacity: 0;
+  animation: hero-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
+}
+
+.btn-down {
+  opacity: 0;
+  animation: hero-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 1.25s forwards;
+}
+
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-word,
+  .hero-divider,
+  .hero-subtitle,
+  .btn-down {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 .hero-subtitle {
