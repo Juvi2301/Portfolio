@@ -11,10 +11,7 @@ export default function LiquidGlassBadge({
 
   return (
     <div className={classes}>
-      <span className="liquid-glass-badge-lens" aria-hidden="true" />
-      <span className="liquid-glass-badge-label" data-liquid-ignore>
-        {children}
-      </span>
+      <span className="liquid-glass-badge-label">{children}</span>
     </div>
   );
 }

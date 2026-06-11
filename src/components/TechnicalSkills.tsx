@@ -45,8 +45,7 @@ export default function TechnicalSkills() {
                 key={group.title}
                 className={`technical-skill-card technical-skill-card-${group.tone}`}
               >
-                <span className="technical-skill-card-lens" aria-hidden="true" />
-                <div className="technical-skill-card-content" data-liquid-ignore>
+                <div className="technical-skill-card-content">
                   <h3 className="technical-skill-card-title">
                     <Icon size={17} strokeWidth={2.4} aria-hidden="true" />
                     <span>{group.title}</span>

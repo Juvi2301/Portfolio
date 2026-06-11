@@ -114,8 +114,7 @@ export default function About() {
         {/* Right Side: Text Card */}
         <div className="about-right">
           <div className="about-card">
-            <span className="about-card-lens" aria-hidden="true" />
-            <div className="about-card-content" data-liquid-ignore>
+            <div className="about-card-content">
               <p className="about-text">
                 I am a Software Engineer with an HNDIT background in Information Technology. I completed my internship at Yarl Ventures from August 2025 to February 2026, where I gained practical experience in real-world software development, teamwork, and full-stack application development.
               </p>

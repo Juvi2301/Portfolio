@@ -42,8 +42,7 @@ export default function Experience() {
                 className={`experience-item experience-item-${experience.side}`}
               >
                 <div className="experience-card">
-                  <span className="experience-card-lens" aria-hidden="true" />
-                  <div className="experience-card-content" data-liquid-ignore>
+                  <div className="experience-card-content">
                     <span className="experience-period">{experience.period}</span>
                     <h3 className="experience-role">{experience.title}</h3>
                     <p className="experience-company">{experience.company}</p>
@@ -51,8 +50,7 @@ export default function Experience() {
                 </div>
 
                 <div className={`experience-node experience-node-${experience.tone}`}>
-                  <span className="experience-node-lens" aria-hidden="true" />
-                  <Icon size={21} strokeWidth={2.2} data-liquid-ignore />
+                  <Icon size={21} strokeWidth={2.2} />
                 </div>
               </article>
             );
