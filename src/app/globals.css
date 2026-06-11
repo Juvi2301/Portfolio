@@ -391,23 +391,21 @@ body {
   transform: translate(-50%, -50%) scale(1.1);
 }
 
-/* Precise coordinates relative to .circles-center (0,0) on 31.75vh radius */
-/* LinkedIn: Angle -55 degrees */
+/* Icon coords on .social-icons-layer (full-page) — orbit center offset + per-icon delta.
+   Icons are direct children of the layer (required by liquidglass: glass must be direct child of root). */
 .icon-linkedin {
-  top: calc(var(--orbit-radius) * -0.819);
-  left: calc(var(--orbit-radius) * 0.573);
+  top: calc(var(--orbit-center-y) + var(--orbit-radius) * -0.819);
+  left: calc(var(--orbit-center-x) + var(--orbit-radius) * 0.573);
 }
 
-/* GitHub: Angle 0 degrees */
 .icon-github {
-  top: 0px;
-  left: var(--orbit-radius); 
+  top: var(--orbit-center-y);
+  left: calc(var(--orbit-center-x) + var(--orbit-radius));
 }
 
-/* Instagram: Angle 55 degrees */
 .icon-instagram {
-  top: calc(var(--orbit-radius) * 0.819);
-  left: calc(var(--orbit-radius) * 0.573);
+  top: calc(var(--orbit-center-y) + var(--orbit-radius) * 0.819);
+  left: calc(var(--orbit-center-x) + var(--orbit-radius) * 0.573);
 }
 
 @media (max-width: 1024px) {
@@ -530,7 +528,7 @@ body {
   }
 
   .icon-github {
-    left: calc(var(--orbit-radius) * 0.6);
+    left: calc(var(--orbit-center-x) + var(--orbit-radius) * 0.6);
   }
 
   .btn-down {
@@ -642,56 +640,18 @@ body {
   letter-spacing: 0.3px;
   text-align: center;
   color: #ffffff;
-  isolation: isolate;
-}
-
-.liquid-glass-badge-lens {
-  position: absolute;
-  inset: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.liquid-glass-badge-lens::before,
-.liquid-glass-badge-lens::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.liquid-glass-badge-lens::before {
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  mask-image:
-    linear-gradient(120deg, #000 0 16%, transparent 40%),
-    linear-gradient(300deg, #000 0 12%, transparent 34%);
-  -webkit-mask-image:
-    linear-gradient(120deg, #000 0 16%, transparent 40%),
-    linear-gradient(300deg, #000 0 12%, transparent 34%);
-}
-
-.liquid-glass-badge-lens::after {
-  background:
-    radial-gradient(circle at 22% 20%, rgba(255, 255, 255, 0.18), transparent 24%),
-    linear-gradient(115deg, rgba(255, 255, 255, 0.08), transparent 44%);
-  mix-blend-mode: screen;
-  opacity: 0.42;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .liquid-glass-badge-label {
   position: relative;
-  z-index: 10;
   display: block;
   color: #ffffff;
   text-shadow: 0 1px 8px rgba(255, 255, 255, 0.12);
-  pointer-events: none;
 }
 
 /* Right Side: Text Card */
@@ -703,19 +663,8 @@ body {
   position: relative;
   overflow: clip;
   border-radius: 12px;
-  /* Distinctive top-left extreme curve from design */
   border-top-left-radius: 60px;
   padding: 40px 50px;
-  isolation: isolate;
-}
-
-.about-card-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background:
     radial-gradient(circle at 14% 8%, rgba(7, 95, 228, 0.18), transparent 25%),
     linear-gradient(145deg, rgba(7, 95, 228, 0.11), rgba(7, 95, 228, 0.035) 42%, rgba(7, 95, 228, 0.075));
@@ -729,36 +678,8 @@ body {
     0 20px 50px rgba(0, 0, 0, 0.3);
 }
 
-.about-card-lens::before,
-.about-card-lens::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.about-card-lens::before {
-  border: 1px solid rgba(85, 156, 255, 0.3);
-  mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 44%),
-    linear-gradient(315deg, #000 0 14%, transparent 36%);
-  -webkit-mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 44%),
-    linear-gradient(315deg, #000 0 14%, transparent 36%);
-}
-
-.about-card-lens::after {
-  background:
-    linear-gradient(105deg, rgba(7, 95, 228, 0.16), transparent 34%),
-    radial-gradient(circle at 85% 78%, rgba(7, 95, 228, 0.22), transparent 34%);
-  mix-blend-mode: screen;
-  opacity: 0.62;
-}
-
 .about-card-content {
   position: relative;
-  z-index: 2;
 }
 
 .about-text {
@@ -852,17 +773,6 @@ body {
   padding: 24px 28px;
   overflow: clip;
   border-radius: 8px 8px 42px 8px;
-  isolation: isolate;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.experience-card-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02) 44%, rgba(255, 255, 255, 0.035)),
     rgba(3, 7, 18, 0.2);
@@ -875,38 +785,8 @@ body {
     0 16px 36px rgba(0, 0, 0, 0.34);
 }
 
-.experience-card-lens::before,
-.experience-card-lens::after,
-.experience-node-lens::before,
-.experience-node-lens::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.experience-card-lens::before {
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  mask-image:
-    linear-gradient(135deg, #000 0 20%, transparent 48%),
-    linear-gradient(315deg, #000 0 14%, transparent 36%);
-  -webkit-mask-image:
-    linear-gradient(135deg, #000 0 20%, transparent 48%),
-    linear-gradient(315deg, #000 0 14%, transparent 36%);
-}
-
-.experience-card-lens::after {
-  background:
-    linear-gradient(110deg, rgba(255, 255, 255, 0.06), transparent 36%),
-    radial-gradient(circle at 88% 78%, rgba(255, 255, 255, 0.08), transparent 32%);
-  mix-blend-mode: screen;
-  opacity: 0.52;
-}
-
 .experience-card-content {
   position: relative;
-  z-index: 2;
 }
 
 .experience-period {
@@ -943,16 +823,6 @@ body {
   place-items: center;
   border-radius: 50%;
   color: #ffffff;
-  isolation: isolate;
-}
-
-.experience-node-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(13px);
@@ -963,7 +833,7 @@ body {
     0 12px 30px rgba(0, 0, 0, 0.48);
 }
 
-.experience-node-blue .experience-node-lens {
+.experience-node-blue {
   background: rgba(7, 95, 228, 0.24);
   border-color: rgba(85, 156, 255, 0.24);
   box-shadow:
@@ -973,38 +843,8 @@ body {
     0 0 24px rgba(7, 95, 228, 0.16);
 }
 
-.experience-node-lens::before {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 42%),
-    linear-gradient(315deg, #000 0 14%, transparent 38%);
-  -webkit-mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 42%),
-    linear-gradient(315deg, #000 0 14%, transparent 38%);
-}
-
-.experience-node-blue .experience-node-lens::before {
-  border-color: rgba(85, 156, 255, 0.28);
-}
-
-.experience-node-lens::after {
-  background:
-    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.14), transparent 24%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.06), transparent 48%);
-  mix-blend-mode: screen;
-  opacity: 0.54;
-}
-
-.experience-node-blue .experience-node-lens::after {
-  background:
-    radial-gradient(circle at 28% 18%, rgba(85, 156, 255, 0.24), transparent 24%),
-    linear-gradient(145deg, rgba(7, 95, 228, 0.16), transparent 48%);
-  opacity: 0.66;
-}
-
 .experience-node svg {
   position: relative;
-  z-index: 2;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.32));
 }
 
@@ -1069,16 +909,6 @@ body {
   padding: 24px 30px 22px;
   overflow: clip;
   border-radius: 28px 7px 7px 7px;
-  isolation: isolate;
-}
-
-.technical-skill-card-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018) 45%, rgba(255, 255, 255, 0.032)),
     rgba(255, 255, 255, 0.018);
@@ -1091,7 +921,7 @@ body {
     0 16px 38px rgba(0, 0, 0, 0.35);
 }
 
-.technical-skill-card-blue .technical-skill-card-lens {
+.technical-skill-card-blue {
   background:
     linear-gradient(145deg, rgba(7, 95, 228, 0.16), rgba(7, 95, 228, 0.035) 43%, rgba(7, 95, 228, 0.09)),
     rgba(7, 95, 228, 0.025);
@@ -1104,47 +934,8 @@ body {
     0 0 26px rgba(7, 95, 228, 0.1);
 }
 
-.technical-skill-card-lens::before,
-.technical-skill-card-lens::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.technical-skill-card-lens::before {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 46%),
-    linear-gradient(315deg, #000 0 12%, transparent 36%);
-  -webkit-mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 46%),
-    linear-gradient(315deg, #000 0 12%, transparent 36%);
-}
-
-.technical-skill-card-blue .technical-skill-card-lens::before {
-  border-color: rgba(85, 156, 255, 0.25);
-}
-
-.technical-skill-card-lens::after {
-  background:
-    linear-gradient(112deg, rgba(255, 255, 255, 0.07), transparent 35%),
-    radial-gradient(circle at 88% 76%, rgba(255, 255, 255, 0.08), transparent 34%);
-  mix-blend-mode: screen;
-  opacity: 0.5;
-}
-
-.technical-skill-card-blue .technical-skill-card-lens::after {
-  background:
-    linear-gradient(112deg, rgba(85, 156, 255, 0.14), transparent 35%),
-    radial-gradient(circle at 88% 76%, rgba(7, 95, 228, 0.18), transparent 34%);
-  opacity: 0.64;
-}
-
 .technical-skill-card-content {
   position: relative;
-  z-index: 2;
   display: flex;
   min-height: 49px;
   flex-direction: column;
@@ -1256,27 +1047,7 @@ body {
   padding: 12px 16px 22px;
   overflow: clip;
   border-radius: 42px 8px 42px 8px;
-  isolation: isolate;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.3),
-    0 0 18px rgba(7, 95, 228, 0.08);
-}
-
-.project-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 22px 50px rgba(0, 0, 0, 0.38),
-    0 0 28px rgba(255, 255, 255, 0.05);
-}
-
-.project-card-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018) 45%, rgba(255, 255, 255, 0.032)),
     rgba(255, 255, 255, 0.018);
@@ -1287,42 +1058,17 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     inset 0 -15px 28px rgba(0, 0, 0, 0.22),
     0 16px 38px rgba(0, 0, 0, 0.35);
-  /* GPU compositing for WebGL clipping */
-  isolation: isolate;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
-.project-card-lens::before,
-.project-card-lens::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.project-card-lens::before {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 46%),
-    linear-gradient(315deg, #000 0 12%, transparent 36%);
-  -webkit-mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 46%),
-    linear-gradient(315deg, #000 0 12%, transparent 36%);
-}
-
-.project-card-lens::after {
-  background:
-    linear-gradient(112deg, rgba(255, 255, 255, 0.07), transparent 35%),
-    radial-gradient(circle at 88% 76%, rgba(255, 255, 255, 0.08), transparent 34%);
-  mix-blend-mode: screen;
-  opacity: 0.5;
+.project-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.38),
+    0 0 28px rgba(255, 255, 255, 0.05);
 }
 
 .project-card-content {
   position: relative;
-  z-index: 3;
   min-height: inherit;
 }
 
@@ -1385,16 +1131,6 @@ body {
   min-height: 374px;
   overflow: clip;
   border-radius: 74px 74px 0 0;
-  isolation: isolate;
-}
-
-.contact-footer-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background:
     radial-gradient(circle at 78% 18%, rgba(7, 95, 228, 0.24), transparent 34%),
     radial-gradient(circle at 18% 88%, rgba(7, 95, 228, 0.12), transparent 38%),
@@ -1410,22 +1146,8 @@ body {
     0 -12px 36px rgba(0, 0, 0, 0.28);
 }
 
-.contact-footer-lens::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.045), transparent 36%),
-    radial-gradient(circle at 78% 76%, rgba(7, 95, 228, 0.18), transparent 40%);
-  mix-blend-mode: screen;
-  opacity: 0.42;
-}
-
 .contact-footer-content {
   position: relative;
-  z-index: 2;
   width: min(100%, var(--content-width));
   min-height: 374px;
   margin: 0 auto;
@@ -1627,21 +1349,7 @@ body {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  overflow: clip;
-  isolation: isolate;
-  background: transparent;
-  border: none;
   min-width: 160px;
-}
-
-.contact-send-btn-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
     rgba(255, 255, 255, 0.045);
@@ -1656,16 +1364,12 @@ body {
 
 .contact-send-btn-label {
   position: relative;
-  z-index: 2;
   display: inline-flex;
   align-items: center;
 }
 
 .contact-send-btn:hover {
   transform: translateY(-2px);
-}
-
-.contact-send-btn:hover .contact-send-btn-lens {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08)),
     rgba(255, 255, 255, 0.06);
@@ -1688,17 +1392,6 @@ body {
   position: relative;
   border-radius: 28px;
   padding: 38px 42px;
-  isolation: isolate;
-  background: rgba(255, 255, 255, 0.015);
-}
-
-.contact-form-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
   background:
     radial-gradient(circle at 10% 10%, rgba(85, 156, 255, 0.06), transparent 40%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01) 45%, rgba(255, 255, 255, 0.015));
@@ -1710,22 +1403,8 @@ body {
     0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
-.contact-form-lens::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 46%);
-  -webkit-mask-image:
-    linear-gradient(135deg, #000 0 18%, transparent 46%);
-}
-
 .contact-form-content {
   position: relative;
-  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -1779,29 +1458,8 @@ body {
   resize: none;
 }
 
-.contact-footer-cta-lens,
-.contact-footer-top-lens,
-.contact-footer-social-lens {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  overflow: clip;
-  border-radius: inherit;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
-    rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 10px 24px rgba(0, 0, 0, 0.22);
-}
-
 .contact-footer-cta-label {
   position: relative;
-  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1865,7 +1523,15 @@ body {
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.74);
   text-decoration: none;
-  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
 /* Responsive About */
@@ -2101,58 +1767,45 @@ body {
   }
 }
 
-/* ==========================================================================
-   liquidGL WebGL Glassmorphism Overrides & Tuning
-   ========================================================================== */
-
-/* 1. Keep the fullscreen liquidGL WebGL canvas directly behind the fixed navbar. */
-canvas[data-liquid-ignore] {
-  z-index: 99 !important;
-  pointer-events: none !important;
-}
-
-/* 2. Restore pointer-events to liquidGL lenses so links remain fully clickable */
-.nav-container,
-.icon-wrapper,
-.btn-down,
-.liquid-glass-badge-lens,
-.about-card-lens,
-.experience-card-lens,
-.experience-node-lens,
-.technical-skill-card-lens,
-.project-card-lens,
-.contact-send-btn-lens,
-.contact-footer-lens,
-.contact-form-lens,
-.contact-footer-cta-lens,
-.contact-footer-top-lens,
-.contact-footer-social-lens {
-  pointer-events: auto !important;
-}
-
-/* 3. Keep lens content above the refraction canvas */
-.nav-container > *,
-.icon-wrapper > *,
-.btn-down > *,
-.liquid-glass-badge-lens > *,
-.about-card-lens > *,
-.experience-card-lens > *,
-.experience-node-lens > *,
-.technical-skill-card-lens > *,
-.project-card-lens > *,
-.contact-send-btn-lens > *,
-.contact-footer-lens > *,
-.contact-form-lens > *,
-.contact-footer-cta-lens > *,
-.contact-footer-top-lens > *,
-.contact-footer-social-lens > * {
-  position: relative;
-  z-index: 10;
-  pointer-events: auto !important;
-}
-
 .icon-wrapper > * {
   color: #ffffff;
   filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.2));
+}
+
+/* ==========================================================================
+   @ybouane/liquidglass — required root setup
+   ==========================================================================
+   Each glass element must be a direct child of its root, and the root must
+   contain the glass so that injected canvases position correctly. We give
+   every root an explicit positioning context. */
+.about-right,
+.stat-group,
+.experience-item,
+.technical-skills-grid,
+.projects-grid,
+.contact-left,
+.contact-right,
+.contact-footer-socials {
+  position: relative;
+}
+
+/* Keep the WebGL canvas the library injects behind the glass element's
+   own content (it inserts canvas as first child; ensure subsequent
+   siblings sit on top in case any of them are not already positioned). */
+.nav-container > *:not(canvas),
+.icon-wrapper > *:not(canvas),
+.btn-down > *:not(canvas),
+.liquid-glass-badge > *:not(canvas),
+.about-card > *:not(canvas),
+.experience-card > *:not(canvas),
+.experience-node > *:not(canvas),
+.technical-skill-card > *:not(canvas),
+.project-card > *:not(canvas),
+.contact-send-btn > *:not(canvas),
+.contact-form > *:not(canvas),
+.contact-footer-shell > *:not(canvas),
+.contact-footer-social > *:not(canvas) {
+  position: relative;
+  z-index: 2;
 }
 

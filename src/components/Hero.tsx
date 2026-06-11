@@ -34,20 +34,18 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Social Icons */}
+        {/* Social Icons — direct children of .social-icons-layer so the
+            liquid glass library can pick them up (must be direct child of root) */}
         <div className="social-icons-layer">
-          <div className="circles-center">
-            {/* Icons are positioned mathematically relative to circles-center */}
-            <a href="#" className="icon-wrapper icon-linkedin" aria-label="LinkedIn">
-              <LinkedinIcon />
-            </a>
-            <a href="#" className="icon-wrapper icon-github" aria-label="GitHub">
-              <GithubIcon />
-            </a>
-            <a href="#" className="icon-wrapper icon-instagram" aria-label="Instagram">
-              <InstagramIcon />
-            </a>
-          </div>
+          <a href="#" className="icon-wrapper icon-linkedin" aria-label="LinkedIn">
+            <LinkedinIcon />
+          </a>
+          <a href="#" className="icon-wrapper icon-github" aria-label="GitHub">
+            <GithubIcon />
+          </a>
+          <a href="#" className="icon-wrapper icon-instagram" aria-label="Instagram">
+            <InstagramIcon />
+          </a>
         </div>
 
         {/* Text Content (Left) */}

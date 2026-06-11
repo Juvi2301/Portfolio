@@ -42,8 +42,7 @@ export default function Projects() {
 
             return (
               <article key={project.title} className="project-card">
-                <span className="project-card-lens" aria-hidden="true" />
-                <div className="project-card-content" data-liquid-ignore>
+                <div className="project-card-content">
                   <div className="project-card-icon-panel" aria-hidden="true">
                     <Icon size={34} strokeWidth={1.9} />
                   </div>

@@ -18,8 +18,7 @@ export default function Contact() {
               Contact for Full-stack development, API architecture, and modern web solutions.
             </p>
             <button className="contact-send-btn">
-              <span className="contact-send-btn-lens" aria-hidden="true" />
-              <span className="contact-send-btn-label" data-liquid-ignore>
+              <span className="contact-send-btn-label">
                 Send Message <span className="arrow">▸</span>
               </span>
             </button>
@@ -28,8 +27,7 @@ export default function Contact() {
           {/* Right Column: Form */}
           <div className="contact-right">
             <form className="contact-form">
-              <span className="contact-form-lens" aria-hidden="true" />
-              <div className="contact-form-content" data-liquid-ignore>
+              <div className="contact-form-content">
                 
                 <div className="form-row">
                   <div className="form-group">
