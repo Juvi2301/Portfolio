@@ -35,7 +35,8 @@ type GlassConfig = {
   bezel?: number; // bezel width (clamped to <= radius - 1)
   ior?: number; // index of refraction
   scaleRatio?: number; // displacement scale ratio
-  blur?: number; // gaussian blur stddev
+  blur?: number; // SVG-internal gaussian blur stddev (subtle, pre-displacement)
+  cssBlur?: number; // CSS backdrop-filter blur in px (frosted glass look)
   specOpacity?: number;
   specSat?: number;
 };
@@ -47,6 +48,7 @@ const DEFAULT_CONFIG: Required<GlassConfig> = {
   ior: 1.5,
   scaleRatio: 0.7,
   blur: 0.2,
+  cssBlur: 0,
   specOpacity: 0.55,
   specSat: 3.2,
 };
@@ -54,7 +56,7 @@ const DEFAULT_CONFIG: Required<GlassConfig> = {
 // Per-selector tuning. Smaller elements need smaller bezels so the
 // refraction doesn't dominate the whole shape.
 const SECTION_CONFIGS: Array<{ selector: string; config?: GlassConfig }> = [
-  { selector: ".nav-container", config: { bezel: 28, thickness: 60, blur: 0.25 } },
+  { selector: ".nav-container", config: { bezel: 28, thickness: 60, blur: 2, cssBlur: 10 } },
   { selector: ".icon-wrapper", config: { bezel: 14, thickness: 28, ior: 1.6 } },
   { selector: ".btn-down", config: { bezel: 14, thickness: 30 } },
   { selector: ".liquid-glass-badge", config: { bezel: 16, thickness: 32 } },
@@ -351,10 +353,12 @@ export default function LiquidGlassFilter() {
         <feBlend in="spec_faded" in2="with_sat" mode="normal" />
       `;
 
-      const url = `url(#${state.filterId})`;
-      el.style.backdropFilter = url;
+      // Compose: CSS blur first (frosted glass), then SVG displacement
+      const cssBlur = config.cssBlur > 0 ? `blur(${config.cssBlur}px) ` : "";
+      const value = `${cssBlur}url(#${state.filterId})`;
+      el.style.backdropFilter = value;
       // @ts-expect-error vendor prefix
-      el.style.webkitBackdropFilter = url;
+      el.style.webkitBackdropFilter = value;
     }
 
     // Find and set up all glass elements
