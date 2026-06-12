@@ -732,29 +732,59 @@ body {
   align-items: flex-start;
 }
 
-/* Scroll-reveal: elements fade + lift in as the section enters view */
-.about-reveal {
+/* Scroll-scrubbed reveal — opacity + transform are driven from JS in sync
+   with scroll position. Elements start hidden; JS reveals them as the
+   section scrolls through the viewport (and reverses on scroll-up). */
+.about-scrub {
   opacity: 0;
-  transform: translateY(26px) scale(0.985);
-  transition:
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.about-reveal.is-visible {
-  opacity: 1;
-  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .about-reveal {
+  .about-scrub {
     opacity: 1;
     transform: none;
-    transition: none;
   }
 }
 
-/* Left Side: Stats */
+/* Typewriter — a hidden "ghost" copy reserves the final height so the card
+   never reflows while the visible copy types in over it. */
+.typed-line {
+  position: relative;
+}
+
+.typed-ghost {
+  visibility: hidden;
+}
+
+.typed-real {
+  position: absolute;
+  inset: 0;
+}
+
+.type-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: #6ba4ff;
+  border-radius: 1px;
+  animation: type-blink 1s steps(1) infinite;
+}
+
+@keyframes type-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .type-cursor {
+    display: none;
+  }
+}
+
+/* Left Side: Stats — sticky so it stays in view while the card scrolls past */
 .about-left {
   flex: 0 0 250px;
   display: flex;
@@ -762,6 +792,9 @@ body {
   align-items: flex-start;
   gap: 35px;
   margin-top: 22px;
+  position: sticky;
+  top: 130px;
+  align-self: flex-start;
 }
 
 .about-title {
@@ -895,6 +928,24 @@ body {
   font-size: 0.82rem;
   font-weight: 500;
   letter-spacing: 0.01em;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.about-status.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-status {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .about-status-dot {
