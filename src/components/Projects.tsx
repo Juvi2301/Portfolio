@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   BookOpenText,
   BriefcaseBusiness,
+  ChevronLeft,
+  ChevronRight,
   MonitorCog,
   ShieldCheck,
   Stethoscope,
@@ -39,25 +41,29 @@ const TECH: Record<string, Tech> = {
   bootstrap: { name: "Bootstrap", Icon: SiBootstrap, color: "#7952B3" },
 };
 
-const featured = {
-  title: "EDUS — Learning Management System",
-  tagline:
-    "A full LMS for admins, tutors, students, and coordinators to run academic workflows end to end.",
-  icon: BookOpenText,
-  tech: ["react", "node", "express", "mongo"],
-  points: [
-    "Supported admins, tutors, students, and coordinators for managing academic workflows.",
-    "Built class management, session scheduling, resource handling, and API integration modules.",
-    "Improved usability across multiple LMS features through full-stack development.",
-  ],
+type Project = {
+  title: string;
+  tagline: string;
+  icon: IconType;
+  accent: string;
+  tech: string[];
 };
 
-const projects = [
+const projects: Project[] = [
+  {
+    title: "EDUS — LMS",
+    tagline:
+      "A full Learning Management System for admins, tutors, students, and coordinators to run academic workflows end to end.",
+    icon: BookOpenText,
+    accent: "#3b82f6",
+    tech: ["react", "node", "express", "mongo"],
+  },
   {
     title: "Hiring Portal",
     tagline:
       "Full-stack recruitment system for Yarl Ventures streamlining end-to-end hiring with role-based workflows.",
     icon: BriefcaseBusiness,
+    accent: "#2f7df2",
     tech: ["react", "node", "express", "mongo", "antd"],
   },
   {
@@ -65,6 +71,7 @@ const projects = [
     tagline:
       "Internal HR platform automating employee records, attendance, leave management, and payroll.",
     icon: MonitorCog,
+    accent: "#1e6fe6",
     tech: ["react", "node", "express", "mongo"],
   },
   {
@@ -72,6 +79,7 @@ const projects = [
     tagline:
       "Healthcare app to search doctors by specialization, hospital, and availability with role-based access.",
     icon: Stethoscope,
+    accent: "#4f8df5",
     tech: ["php", "mysql", "js", "html", "css", "bootstrap"],
   },
   {
@@ -79,34 +87,18 @@ const projects = [
     tagline:
       "Secure online voting with voter registration, private ballots, and real-time result tallying.",
     icon: ShieldCheck,
+    accent: "#2563eb",
     tech: ["html", "css", "js", "php"],
   },
 ];
 
-function TechRow({ keys }: { keys: string[] }) {
-  return (
-    <ul className="project-tech" aria-label="Tech stack">
-      {keys.map((k) => {
-        const t = TECH[k];
-        const Ic = t.Icon;
-        return (
-          <li
-            key={k}
-            className="project-tech-item"
-            style={{ "--brand": t.color } as CSSProperties}
-            title={t.name}
-          >
-            <Ic className="project-tech-icon" aria-label={t.name} />
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
+const COUNT = projects.length;
 
 export default function Projects() {
   const sectionRef = useRef<HTMLElement>(null);
   const [inView, setInView] = useState(false);
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -118,14 +110,23 @@ export default function Projects() {
           observer.disconnect();
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.2 }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  const revealed = inView ? " is-revealed" : "";
-  const FeaturedIcon = featured.icon;
+  const go = useCallback((dir: number) => {
+    setActive((a) => (a + dir + COUNT) % COUNT);
+  }, []);
+
+  // Auto-advance (paused on hover / off-screen / reduced motion)
+  useEffect(() => {
+    if (!inView || paused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => go(1), 4500);
+    return () => clearInterval(id);
+  }, [inView, paused, go]);
 
   return (
     <section id="projects" className="projects-section" ref={sectionRef}>
@@ -135,47 +136,104 @@ export default function Projects() {
           <div className="projects-divider"></div>
         </div>
 
-        <div className="projects-grid">
-          <article
-            className={`project-card project-card-featured pj-reveal${revealed}`}
-            style={{ transitionDelay: "0ms" }}
-          >
-            <div className="project-featured-visual" aria-hidden="true">
-              <span className="project-featured-tag">Featured</span>
-              <FeaturedIcon size={56} strokeWidth={1.7} />
-            </div>
-            <div className="project-featured-body">
-              <h3 className="project-featured-title">{featured.title}</h3>
-              <p className="project-featured-tagline">{featured.tagline}</p>
-              <TechRow keys={featured.tech} />
-              <ul className="project-points">
-                {featured.points.map((p) => (
-                  <li key={p} className="project-point">
-                    {p}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </article>
+        <div
+          className={`pc${inView ? " is-in" : ""}`}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          <div className="pc-stage">
+            {projects.map((p, i) => {
+              // circular offset so the fan wraps around (-2 .. 2 for 5 cards)
+              let offset = i - active;
+              if (offset > COUNT / 2) offset -= COUNT;
+              if (offset < -COUNT / 2) offset += COUNT;
 
-          {projects.map((project, i) => {
-            const Icon = project.icon;
+              const abs = Math.abs(offset);
+              const sign = Math.sign(offset);
+              const tx = offset * 54;
+              const tz = -abs * 150;
+              const ry = -sign * Math.min(abs, 2) * 34;
+              const scale = 1 - Math.min(abs, 2) * 0.13;
+              const isActive = offset === 0;
 
-            return (
-              <article
-                key={project.title}
-                className={`project-card pj-reveal${revealed}`}
-                style={{ transitionDelay: `${120 + i * 90}ms` }}
-              >
-                <span className="project-card-icon" aria-hidden="true">
-                  <Icon size={24} strokeWidth={1.9} />
-                </span>
-                <h3 className="project-card-name">{project.title}</h3>
-                <TechRow keys={project.tech} />
-                <p className="project-card-tagline">{project.tagline}</p>
-              </article>
-            );
-          })}
+              const Icon = p.icon;
+              const tone = i % 2 === 0 ? "clear" : "blue";
+              const style = {
+                transform: `translateX(${tx}%) translateZ(${tz}px) rotateY(${ry}deg) scale(${scale})`,
+                opacity: abs > 2 ? 0 : 1 - abs * 0.16,
+                zIndex: COUNT - abs,
+                pointerEvents: abs > 2 ? "none" : "auto",
+              } as CSSProperties;
+
+              return (
+                <article
+                  key={p.title}
+                  className={`pc-card pc-card-${tone}${isActive ? " is-active" : ""}`}
+                  style={style}
+                  aria-hidden={!isActive}
+                  onClick={() => !isActive && setActive(i)}
+                >
+                  <div className="pc-card-visual">
+                    <Icon size={62} strokeWidth={1.6} aria-hidden="true" />
+                  </div>
+                  <div className="pc-card-body">
+                    <h3 className="pc-card-title">{p.title}</h3>
+                    <ul className="pc-tech" aria-label="Tech stack">
+                      {p.tech.map((k) => {
+                        const t = TECH[k];
+                        const Ic = t.Icon;
+                        return (
+                          <li
+                            key={k}
+                            className="pc-tech-item"
+                            style={{ "--brand": t.color } as CSSProperties}
+                            title={t.name}
+                          >
+                            <Ic aria-label={t.name} />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <p className="pc-card-tagline">{p.tagline}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="pc-controls">
+            <button
+              type="button"
+              className="pc-arrow"
+              onClick={() => go(-1)}
+              aria-label="Previous project"
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            <div className="pc-dots" role="tablist" aria-label="Project slides">
+              {projects.map((p, i) => (
+                <button
+                  key={p.title}
+                  type="button"
+                  className={`pc-dot${i === active ? " is-active" : ""}`}
+                  onClick={() => setActive(i)}
+                  aria-label={`Show ${p.title}`}
+                  aria-selected={i === active}
+                  role="tab"
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="pc-arrow"
+              onClick={() => go(1)}
+              aria-label="Next project"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
         </div>
       </div>
     </section>
