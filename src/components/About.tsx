@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import LiquidGlassBadge from "./LiquidGlassBadge";
 
 function StatNumber({ id, value }: { id: string; value: string }) {
@@ -120,35 +120,213 @@ function useCountUp(target: number, start: boolean, duration = 1300) {
   return value;
 }
 
-export default function About() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const [inView, setInView] = useState(false);
+const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
+
+type Seg = { text: string; hl?: boolean };
+type Block = { className: string; segs: Seg[] };
+
+/* Card copy as typed blocks. Highlighted segments keep the accent color. */
+const ABOUT_BLOCKS: Block[] = [
+  {
+    className: "about-lede",
+    segs: [
+      { text: "I'm an " },
+      { text: "Associate Software Engineer", hl: true },
+      {
+        text: " specializing in full-stack web development with the MERN stack — building production-grade applications from database to interface.",
+      },
+    ],
+  },
+  {
+    className: "about-text",
+    segs: [
+      {
+        text: "After a six-month internship at Yarl Ventures, I joined the team full-time, contributing to production systems including an HR management platform, a learning management system, and a recruitment portal.",
+      },
+    ],
+  },
+  {
+    className: "about-text",
+    segs: [
+      { text: "On the frontend I build responsive interfaces with " },
+      { text: "React.js", hl: true },
+      { text: ", Tailwind CSS, and Ant Design. On the backend I design " },
+      { text: "RESTful APIs", hl: true },
+      {
+        text: " with Node.js, Express.js, and Prisma ORM — working across MongoDB, MySQL, and PostgreSQL, and implementing authentication and role-based access control in Agile teams.",
+      },
+    ],
+  },
+];
+
+const BLOCK_LENS = ABOUT_BLOCKS.map((b) =>
+  b.segs.reduce((s, seg) => s + seg.text.length, 0)
+);
+const BLOCK_OFFSETS = BLOCK_LENS.map((_, i) =>
+  BLOCK_LENS.slice(0, i).reduce((a, b) => a + b, 0)
+);
+const TOTAL_CHARS = BLOCK_LENS.reduce((a, b) => a + b, 0);
+
+/* Advances a character counter over time once `start` is true. */
+function useTypewriter(start: boolean, total: number, cps = 58) {
+  const [typed, setTyped] = useState(0);
 
   useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 }
+    if (!start) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      setTyped(total);
+      return;
+    }
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const n = Math.min(Math.floor(((now - t0) * cps) / 1000), total);
+      setTyped(n);
+      if (n < total) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [start, total, cps]);
+
+  return typed;
+}
+
+/* Renders the first `revealed` characters of a block's segments. */
+function renderSegs(segs: Seg[], revealed: number): ReactNode[] {
+  let remaining = revealed;
+  const nodes: ReactNode[] = [];
+  segs.forEach((seg, i) => {
+    if (remaining <= 0) return;
+    const take = Math.min(seg.text.length, remaining);
+    remaining -= take;
+    const slice = seg.text.slice(0, take);
+    nodes.push(
+      seg.hl ? (
+        <span key={i} className="about-highlight">
+          {slice}
+        </span>
+      ) : (
+        <span key={i}>{slice}</span>
+      )
     );
-    observer.observe(el);
-    return () => observer.disconnect();
+  });
+  return nodes;
+}
+
+function TypedBlock({
+  block,
+  blockLen,
+  revealed,
+  cursor,
+}: {
+  block: Block;
+  blockLen: number;
+  revealed: number;
+  cursor: boolean;
+}) {
+  return (
+    <p className={`${block.className} typed-line`}>
+      {/* ghost reserves the final height so the card doesn't reflow while typing */}
+      <span className="typed-ghost" aria-hidden="true">
+        {renderSegs(block.segs, blockLen)}
+      </span>
+      <span className="typed-real">
+        {renderSegs(block.segs, revealed)}
+        {cursor && <span className="type-cursor" aria-hidden="true" />}
+      </span>
+    </p>
+  );
+}
+
+export default function About() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const stat1Ref = useRef<HTMLDivElement>(null);
+  const stat2Ref = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    // [element, stagger offset] — later offset = enters later as you scroll
+    const targets: Array<[HTMLElement | null, number]> = [
+      [titleRef.current, 0],
+      [stat1Ref.current, 0.08],
+      [cardRef.current, 0.12],
+      [stat2Ref.current, 0.18],
+    ];
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      for (const [el] of targets) {
+        if (el) {
+          el.style.opacity = "1";
+          el.style.transform = "none";
+        }
+      }
+      setStarted(true);
+      return;
+    }
+
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const vh = window.innerHeight;
+      const rect = section.getBoundingClientRect();
+      // Section progress: 0 when its top is 88% down the viewport, 1 at 30%.
+      const enterStart = vh * 0.88;
+      const enterEnd = vh * 0.3;
+      const P = clamp((enterStart - rect.top) / (enterStart - enterEnd), 0, 1);
+
+      for (const [el, offset] of targets) {
+        if (!el) continue;
+        const lp = clamp((P - offset) / 0.55, 0, 1);
+        const eased = 1 - Math.pow(1 - lp, 3); // easeOutCubic
+        el.style.opacity = String(eased);
+        if (eased >= 0.999) {
+          // Snap to a true `none` so backdrop-filter glass samples correctly at rest.
+          el.style.transform = "none";
+        } else {
+          const ty = (1 - eased) * 30;
+          const sc = 0.985 + eased * 0.015;
+          el.style.transform = `translateY(${ty}px) scale(${sc})`;
+        }
+      }
+
+      if (P > 0.4) setStarted(true);
+    };
+
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
-  const years = useCountUp(2, inView);
-  const projects = useCountUp(5, inView);
-  const shown = (cls: string) => `${cls} about-reveal${inView ? " is-visible" : ""}`;
+  const years = useCountUp(2, started);
+  const projects = useCountUp(5, started);
+
+  const typed = useTypewriter(started, TOTAL_CHARS);
+  const done = typed >= TOTAL_CHARS;
+  const activeIndex = done
+    ? -1
+    : ABOUT_BLOCKS.findIndex((_, i) => typed < BLOCK_OFFSETS[i] + BLOCK_LENS[i]);
 
   return (
     <section id="about" className="about-section" ref={sectionRef}>
       <div className="about-container">
 
-        <div className={shown("about-title-wrapper")} style={{ transitionDelay: "0ms" }}>
+        <div className="about-title-wrapper about-scrub" ref={titleRef}>
           <h2 className="about-title">About Me</h2>
           <div className="about-divider"></div>
         </div>
@@ -157,34 +335,34 @@ export default function About() {
 
           {/* Left Side: Stats */}
           <div className="about-left">
-            <div className={shown("stat-group")} style={{ transitionDelay: "120ms" }}>
+            <div className="stat-group about-scrub" ref={stat1Ref}>
               <StatNumber id="experience-stat" value={`${years}+`} />
               <LiquidGlassBadge>Years Of Experience</LiquidGlassBadge>
             </div>
 
-            <div className={shown("stat-group")} style={{ transitionDelay: "220ms" }}>
+            <div className="stat-group about-scrub" ref={stat2Ref}>
               <StatNumber id="project-stat" value={`${projects}+`} />
               <LiquidGlassBadge>Project Complete</LiquidGlassBadge>
             </div>
           </div>
 
           {/* Right Side: Text Card */}
-          <div className={shown("about-right")} style={{ transitionDelay: "180ms" }}>
+          <div className="about-right about-scrub" ref={cardRef}>
             <div className="about-card">
               <div className="about-card-content">
-              <p className="about-lede">
-                I&apos;m an <span className="about-highlight">Associate Software Engineer</span> specializing in full-stack web development with the MERN stack &mdash; building production-grade applications from database to interface.
-              </p>
-              <p className="about-text">
-                After a six-month internship at Yarl Ventures, I joined the team full-time, contributing to production systems including an HR management platform, a learning management system, and a recruitment portal.
-              </p>
-              <p className="about-text">
-                On the frontend I build responsive interfaces with <span className="about-highlight">React.js</span>, Tailwind CSS, and Ant Design. On the backend I design <span className="about-highlight">RESTful APIs</span> with Node.js, Express.js, and Prisma ORM &mdash; working across MongoDB, MySQL, and PostgreSQL, and implementing authentication and role-based access control in Agile teams.
-              </p>
-              <div className="about-status">
-                <span className="about-status-dot"></span>
-                Currently @ Yarl Ventures &middot; Associate Software Engineer
-              </div>
+                {ABOUT_BLOCKS.map((block, i) => (
+                  <TypedBlock
+                    key={i}
+                    block={block}
+                    blockLen={BLOCK_LENS[i]}
+                    revealed={clamp(typed - BLOCK_OFFSETS[i], 0, BLOCK_LENS[i])}
+                    cursor={i === activeIndex}
+                  />
+                ))}
+                <div className={`about-status${done ? " is-revealed" : ""}`}>
+                  <span className="about-status-dot"></span>
+                  Currently @ Yarl Ventures &middot; Associate Software Engineer
+                </div>
               </div>
             </div>
           </div>
