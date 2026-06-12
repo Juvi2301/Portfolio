@@ -1,13 +1,38 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 export default function Contact() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const reveal = inView ? " is-visible" : "";
+
   return (
-    <section id="contact" className="contact-section">
+    <section id="contact" className="contact-section" ref={sectionRef}>
       <div className="container contact-container">
         <div className="contact-main">
           {/* Left Column: Text & CTA */}
-          <div className="contact-left">
+          <div className={`contact-left ct-reveal ct-reveal-left${reveal}`}>
             <div className="contact-subtitle-wrapper">
               <span className="contact-subtitle">Get in Touch</span>
-              <div className="contact-divider"></div>
+              <div className={`contact-divider divider-draw${inView ? " is-drawn" : ""}`}></div>
             </div>
             <h2 className="contact-title">
               Let&apos;s Talk<br />
@@ -25,7 +50,7 @@ export default function Contact() {
           </div>
 
           {/* Right Column: Form */}
-          <div className="contact-right">
+          <div className={`contact-right ct-reveal ct-reveal-right${reveal}`}>
             <form className="contact-form">
               <div className="contact-form-content">
                 

@@ -8,6 +8,7 @@ function StatNumber({ id, value }: { id: string; value: string }) {
   const bodyGradientId = `${id}-body`;
   const rimGradientId = `${id}-rim`;
   const lowerRimGradientId = `${id}-lower-rim`;
+  const glyphId = `${id}-glyph`;
 
   return (
     <svg className="stat-number" viewBox="0 0 168 104" role="img" aria-label={value}>
@@ -78,14 +79,18 @@ function StatNumber({ id, value }: { id: string; value: string }) {
           <stop offset="72%" stopColor="#ffffff" stopOpacity="0.22" />
           <stop offset="100%" stopColor="#ffffff" stopOpacity="0.05" />
         </linearGradient>
+
+        {/* The glyph exists once; the layers below reference it via <use>
+            so selecting/copying the page yields the value a single time. */}
+        <text id={glyphId} x="8" y="86">{value}</text>
       </defs>
 
-      <g className="stat-number-text" filter={`url(#${filterId})`}>
-        <text x="8" y="86" fill="#ffffff" fillOpacity="0.12">{value}</text>
-        <text x="8" y="86" fill={`url(#${bodyGradientId})`}>{value}</text>
-        <text x="8" y="86" fill="none" stroke={`url(#${rimGradientId})`} strokeWidth="3.1">{value}</text>
-        <text x="8" y="86" fill="none" stroke={`url(#${lowerRimGradientId})`} strokeWidth="1.8">{value}</text>
-        <text x="8" y="86" fill="none" stroke="#ffffff" strokeOpacity="0.045" strokeWidth="5.6">{value}</text>
+      <g className="stat-number-text" filter={`url(#${filterId})`} aria-hidden="true">
+        <use href={`#${glyphId}`} fill="#ffffff" fillOpacity="0.12" />
+        <use href={`#${glyphId}`} fill={`url(#${bodyGradientId})`} />
+        <use href={`#${glyphId}`} fill="none" stroke={`url(#${rimGradientId})`} strokeWidth="3.1" />
+        <use href={`#${glyphId}`} fill="none" stroke={`url(#${lowerRimGradientId})`} strokeWidth="1.8" />
+        <use href={`#${glyphId}`} fill="none" stroke="#ffffff" strokeOpacity="0.045" strokeWidth="5.6" />
       </g>
     </svg>
   );
@@ -328,7 +333,7 @@ export default function About() {
 
         <div className="about-title-wrapper about-scrub" ref={titleRef}>
           <h2 className="about-title">About Me</h2>
-          <div className="about-divider"></div>
+          <div className={`about-divider divider-draw${started ? " is-drawn" : ""}`}></div>
         </div>
 
         <div className="about-body">
