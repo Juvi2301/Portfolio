@@ -38,7 +38,6 @@ type GlassConfig = {
   blur?: number; // SVG-internal gaussian blur stddev (subtle, pre-displacement)
   cssBlur?: number; // CSS backdrop-filter blur in px (frosted glass look)
   specOpacity?: number;
-  specSat?: number;
 };
 
 const DEFAULT_CONFIG: Required<GlassConfig> = {
@@ -50,7 +49,6 @@ const DEFAULT_CONFIG: Required<GlassConfig> = {
   blur: 0.2,
   cssBlur: 0,
   specOpacity: 0.55,
-  specSat: 3.2,
 };
 
 // Per-selector tuning. Smaller elements need smaller bezels so the
@@ -64,7 +62,10 @@ const SECTION_CONFIGS: Array<{ selector: string; config?: GlassConfig }> = [
   { selector: ".experience-card", config: { bezel: 24, thickness: 60 } },
   { selector: ".experience-node", config: { bezel: 18, thickness: 36 } },
   { selector: ".technical-skill-card", config: { bezel: 26, thickness: 60 } },
-  { selector: ".project-card", config: { bezel: 32, thickness: 70 } },
+  /* Note: the project carousel (.pc-card) intentionally has no glass filter —
+     those cards animate 3D transforms constantly, which would force the
+     filter to re-run every frame, and their backgrounds are ~95% opaque so
+     refraction wouldn't be visible anyway. */
   { selector: ".contact-send-btn", config: { bezel: 12, thickness: 26 } },
   { selector: ".contact-form", config: { bezel: 38, thickness: 90, blur: 0.3 } },
   { selector: ".contact-footer-shell", config: { bezel: 48, thickness: 110, blur: 0.3 } },
@@ -203,11 +204,15 @@ function generateDisplacementMap(
   return c.toDataURL();
 }
 
+/* The specular layer's overall opacity is baked into the map's alpha here,
+   so the live filter chain can blend it directly without an extra
+   feComponentTransfer pass per frame. */
 function generateSpecularMap(
   w: number,
   h: number,
   radii: Radii,
   bezelWidth: number,
+  opacityScale: number,
   angle = Math.PI / 3
 ): string {
   const c = document.createElement("canvas");
@@ -241,7 +246,7 @@ function generateSpecularMap(
       const edge = Math.sqrt(Math.max(0, 1 - (1 - fromSide) ** 2));
       const coeff = dot * edge;
       const col = (255 * coeff) | 0;
-      const alpha = (col * coeff * op) | 0;
+      const alpha = (col * coeff * op * opacityScale) | 0;
       const idx = (y1 * w + x1) * 4;
       d[idx] = col;
       d[idx + 1] = col;
@@ -325,7 +330,7 @@ export default function LiquidGlassFilter() {
       );
       const maxDisp = Math.max(...Array.from(profile).map(Math.abs)) || 1;
       const dispUrl = generateDisplacementMap(w, h, radii, bezel, profile, maxDisp);
-      const specUrl = generateSpecularMap(w, h, radii, bezel * 2.5);
+      const specUrl = generateSpecularMap(w, h, radii, bezel * 2.5, config.specOpacity);
       const scale = maxDisp * config.scaleRatio;
 
       let filter = defs.querySelector(`#${state.filterId}`) as SVGFilterElement | null;
@@ -338,19 +343,20 @@ export default function LiquidGlassFilter() {
         filter.setAttribute("height", "100%");
         defs.appendChild(filter);
       }
+      /* Minimal per-frame chain. backdrop-filter re-runs this every time the
+         backdrop changes (i.e. every scroll frame), so each primitive here is
+         paid dozens of times per second per element. The two feImages are
+         static textures the browser caches; the real work is one displacement
+         pass + one blend. The sub-pixel pre-blur is skipped when it's too
+         small to see, and the specular fade is pre-baked into the map's alpha. */
+      const subtleBlur = config.blur >= 0.3;
       filter.innerHTML = `
-        <feGaussianBlur in="SourceGraphic" stdDeviation="${config.blur}" result="blurred_source" />
+        ${subtleBlur ? `<feGaussianBlur in="SourceGraphic" stdDeviation="${config.blur}" result="blurred_source" />` : ""}
         <feImage href="${dispUrl}" x="0" y="0" width="${w}" height="${h}" result="disp_map" />
-        <feDisplacementMap in="blurred_source" in2="disp_map" scale="${scale}"
+        <feDisplacementMap in="${subtleBlur ? "blurred_source" : "SourceGraphic"}" in2="disp_map" scale="${scale}"
           xChannelSelector="R" yChannelSelector="G" result="displaced" />
-        <feColorMatrix in="displaced" type="saturate" values="${config.specSat}" result="displaced_sat" />
         <feImage href="${specUrl}" x="0" y="0" width="${w}" height="${h}" result="spec_layer" />
-        <feComposite in="displaced_sat" in2="spec_layer" operator="in" result="spec_masked" />
-        <feComponentTransfer in="spec_layer" result="spec_faded">
-          <feFuncA type="linear" slope="${config.specOpacity}" />
-        </feComponentTransfer>
-        <feBlend in="spec_masked" in2="displaced" mode="normal" result="with_sat" />
-        <feBlend in="spec_faded" in2="with_sat" mode="normal" />
+        <feBlend in="spec_layer" in2="displaced" mode="normal" />
       `;
 
       // Compose: CSS blur first (frosted glass), then SVG displacement

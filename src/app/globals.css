@@ -76,20 +76,24 @@ body {
   }
 }
 
-/* Starfield — glowing night-sky stars behind the whole page, hero included. */
+/* Starfield — glowing night-sky stars behind the whole page, hero included.
+   Fixed to the viewport (like .bg-gradients) instead of stretching over the
+   whole document: that keeps the dust layers viewport-sized rather than
+   document-sized, which matters a lot for GPU memory and for how much
+   backdrop area the liquid-glass filters have to re-sample. */
 .starfield {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
+  position: fixed;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
 }
 
-/* Two tiled layers of faint "star dust" — cheap, infinitely repeating,
-   gently breathing in and out of brightness. */
+/* Two tiled layers of faint "star dust" — cheap, infinitely repeating.
+   Deliberately NOT animated: a full-viewport opacity animation behind the
+   page invalidates the backdrop of every liquid-glass element on screen
+   every single frame, forcing all their SVG filters to re-run constantly.
+   The per-star twinkle below provides the living-sky feel instead. */
 .starfield::before,
 .starfield::after {
   content: "";
@@ -105,7 +109,7 @@ body {
     radial-gradient(1.4px 1.4px at 160px 60px, rgba(255, 255, 255, 0.7), transparent),
     radial-gradient(1px 1px at 200px 180px, rgba(255, 255, 255, 0.5), transparent);
   background-size: 220px 220px;
-  animation: star-dust 6s ease-in-out infinite;
+  opacity: 0.75;
 }
 
 .starfield::after {
@@ -114,12 +118,7 @@ body {
     radial-gradient(1.2px 1.2px at 130px 150px, rgba(201, 222, 255, 0.62), transparent),
     radial-gradient(1px 1px at 180px 40px, rgba(255, 255, 255, 0.45), transparent);
   background-size: 300px 300px;
-  animation: star-dust 9s ease-in-out infinite reverse;
-}
-
-@keyframes star-dust {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 0.88; }
+  opacity: 0.65;
 }
 
 /* Prominent glowing stars — each twinkles on its own rhythm. */
@@ -145,8 +144,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .starfield::before,
-  .starfield::after,
   .glow-star {
     animation: none;
   }
@@ -277,7 +274,9 @@ body {
   pointer-events: none;
   z-index: 0;
   filter: blur(90px);
-  will-change: transform, opacity;
+  /* Transform-only animation: the 90px-blurred blob is rasterized once and
+     the compositor just moves/scales the cached texture. */
+  will-change: transform;
 }
 
 .hero-section::before {
@@ -300,30 +299,24 @@ body {
 @keyframes hero-glow-drift-tr {
   0%, 100% {
     transform: translate(0, 0) scale(1);
-    opacity: 1;
   }
   33% {
     transform: translate(-40px, 30px) scale(1.08);
-    opacity: 0.85;
   }
   66% {
     transform: translate(20px, -20px) scale(0.95);
-    opacity: 1.1;
   }
 }
 
 @keyframes hero-glow-drift-bl {
   0%, 100% {
     transform: translate(0, 0) scale(1);
-    opacity: 1;
   }
   40% {
     transform: translate(50px, -40px) scale(1.12);
-    opacity: 1.2;
   }
   75% {
     transform: translate(-20px, 25px) scale(0.92);
-    opacity: 0.8;
   }
 }
 
@@ -847,6 +840,9 @@ body {
    section scrolls through the viewport (and reverses on scroll-up). */
 .about-scrub {
   opacity: 0;
+  /* JS writes transform/opacity here every scroll frame — keep these on
+     their own compositor layer so the scrub doesn't repaint the section. */
+  will-change: opacity, transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1657,8 +1653,10 @@ body {
   overflow: hidden;
   cursor: pointer;
   transform-style: preserve-3d;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* No backdrop-filter here on purpose: the card backgrounds are ~95% opaque
+     so a blur behind them is invisible, but these cards animate 3D transforms
+     constantly (carousel auto-advance) and a backdrop blur would be re-run
+     on every frame of every transition. */
   transition:
     transform 0.6s cubic-bezier(0.32, 0.72, 0, 1),
     opacity 0.6s ease,
