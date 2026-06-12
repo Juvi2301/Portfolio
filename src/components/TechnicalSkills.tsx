@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { Code2, Database, Server, Wrench } from "lucide-react";
 
 const skillGroups = [
@@ -28,22 +31,47 @@ const skillGroups = [
 ] as const;
 
 export default function TechnicalSkills() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.18 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const reveal = inView ? " is-visible" : "";
+
   return (
-    <section id="technical-skills" className="technical-skills-section">
+    <section id="technical-skills" className="technical-skills-section" ref={sectionRef}>
       <div className="technical-skills-container">
-        <div className="technical-skills-title-wrapper">
+        <div
+          className={`technical-skills-title-wrapper ts-reveal${reveal}`}
+          style={{ transitionDelay: "0ms" }}
+        >
           <h2 className="technical-skills-title">Technical Skills</h2>
           <div className="technical-skills-divider"></div>
         </div>
 
         <div className="technical-skills-grid">
-          {skillGroups.map((group) => {
+          {skillGroups.map((group, i) => {
             const Icon = group.icon;
 
             return (
               <article
                 key={group.title}
-                className={`technical-skill-card technical-skill-card-${group.tone}`}
+                className={`technical-skill-card technical-skill-card-${group.tone} ts-reveal${reveal}`}
+                style={{ transitionDelay: `${120 + i * 90}ms` }}
               >
                 <div className="technical-skill-card-content">
                   <h3 className="technical-skill-card-title">
