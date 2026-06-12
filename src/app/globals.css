@@ -1206,6 +1206,102 @@ body {
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.32));
 }
 
+/* ---- "Tree growing" scroll animation ----
+   A bright line grows down the timeline; each node pops and its card
+   sprouts outward as the line reaches it. */
+.experience-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(120, 170, 255, 0),
+    rgba(120, 170, 255, 0.55) 10%,
+    rgba(150, 190, 255, 0.65) 50%,
+    rgba(120, 170, 255, 0.55) 90%,
+    transparent
+  );
+  box-shadow: 0 0 9px rgba(120, 170, 255, 0.6);
+  transform-origin: bottom center;
+  transform: scaleY(0);
+  transition: transform 1.5s cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+.experience-timeline.is-grown .experience-line::after {
+  transform: scaleY(1);
+}
+
+/* Nodes pop in (scale keeps the centering translate) */
+.experience-node {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  transition:
+    opacity 0.45s ease,
+    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.experience-timeline.is-grown .experience-node {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Cards sprout outward from the line */
+.experience-card {
+  opacity: 0;
+  transition:
+    opacity 0.6s ease,
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.experience-item-right .experience-card {
+  transform: translateX(-16px);
+}
+
+.experience-item-left .experience-card {
+  transform: translateX(16px);
+}
+
+.experience-timeline.is-grown .experience-card {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger bottom-up: the lower item (nth-child 3) reveals first,
+   then the upper item (nth-child 2), matching the line growing upward. */
+.experience-timeline.is-grown .experience-item:nth-child(3) .experience-node {
+  transition-delay: 0.2s;
+}
+.experience-timeline.is-grown .experience-item:nth-child(3) .experience-card {
+  transition-delay: 0.36s;
+}
+.experience-timeline.is-grown .experience-item:nth-child(2) .experience-node {
+  transition-delay: 0.78s;
+}
+.experience-timeline.is-grown .experience-item:nth-child(2) .experience-card {
+  transition-delay: 0.94s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-line::after {
+    transform: scaleY(1);
+    transition: none;
+  }
+  .experience-node {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+    transition: none;
+  }
+  .experience-card {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 /* =========================================
    Technical Skills Section
    ========================================= */
@@ -1382,9 +1478,10 @@ body {
 
 .technical-skill-chip-icon {
   flex: 0 0 auto;
-  font-size: 0.86rem;
-  color: rgba(255, 255, 255, 0.72);
-  transition: color 0.3s ease;
+  font-size: 0.88rem;
+  color: var(--brand);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--brand) 45%, transparent));
+  transition: filter 0.3s ease;
 }
 
 .technical-skill-chip:hover {
@@ -1397,7 +1494,7 @@ body {
 }
 
 .technical-skill-chip:hover .technical-skill-chip-icon {
-  color: var(--brand);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand) 70%, transparent));
 }
 
 /* ---- Technical Skills scroll reveal + interactions ---- */

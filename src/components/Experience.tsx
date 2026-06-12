@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { Code2, UserRound } from "lucide-react";
 
 const experiences = [
@@ -22,15 +25,34 @@ const experiences = [
 ] as const;
 
 export default function Experience() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [grown, setGrown] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setGrown(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="experience" className="experience-section">
+    <section id="experience" className="experience-section" ref={sectionRef}>
       <div className="experience-container">
         <div className="experience-title-wrapper">
           <h2 className="experience-title">Experience</h2>
           <div className="experience-divider"></div>
         </div>
 
-        <div className="experience-timeline">
+        <div className={`experience-timeline${grown ? " is-grown" : ""}`}>
           <div className="experience-line" aria-hidden="true"></div>
 
           {experiences.map((experience) => {
