@@ -42,6 +42,81 @@ body {
   padding: 0 var(--page-gutter);
 }
 
+/* Starfield — glowing night-sky stars behind the whole page, hero included. */
+.starfield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Two tiled layers of faint "star dust" — cheap, infinitely repeating,
+   gently breathing in and out of brightness. */
+.starfield::before,
+.starfield::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+}
+
+.starfield::before {
+  background-image:
+    radial-gradient(1px 1px at 25px 35px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 90px 110px, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.4px 1.4px at 160px 60px, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 200px 180px, rgba(255, 255, 255, 0.35), transparent);
+  background-size: 240px 240px;
+  animation: star-dust 6s ease-in-out infinite;
+}
+
+.starfield::after {
+  background-image:
+    radial-gradient(1px 1px at 50px 80px, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 130px 150px, rgba(201, 222, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 180px 40px, rgba(255, 255, 255, 0.3), transparent);
+  background-size: 320px 320px;
+  animation: star-dust 9s ease-in-out infinite reverse;
+}
+
+@keyframes star-dust {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.8; }
+}
+
+/* Prominent glowing stars — each twinkles on its own rhythm. */
+.glow-star {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.5) 35%,
+    transparent 70%
+  );
+  box-shadow:
+    0 0 6px 1px rgba(255, 255, 255, 0.45),
+    0 0 12px 2px rgba(140, 180, 255, 0.25);
+  animation: star-twinkle var(--dur, 4s) ease-in-out var(--delay, 0s) infinite;
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.18; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starfield::before,
+  .starfield::after,
+  .glow-star {
+    animation: none;
+  }
+}
+
 /* Glassmorphism Navigation */
 .nav-wrapper {
   position: fixed;
