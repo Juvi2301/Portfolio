@@ -121,7 +121,7 @@ export default function TechnicalSkills() {
               <article
                 key={group.title}
                 className={`technical-skill-card technical-skill-card-${group.tone} ts-reveal${reveal}`}
-                style={{ transitionDelay: `${120 + i * 90}ms` }}
+                style={{ transitionDelay: `${150 + i * 120}ms` }}
               >
                 <div className="technical-skill-card-content">
                   <div className="technical-skill-card-head">

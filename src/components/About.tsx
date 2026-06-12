@@ -96,7 +96,7 @@ function StatNumber({ id, value }: { id: string; value: string }) {
   );
 }
 
-function useCountUp(target: number, start: boolean, duration = 1300) {
+function useCountUp(target: number, start: boolean, duration = 1700) {
   const [value, setValue] = useState(0);
 
   useEffect(() => {
@@ -173,7 +173,7 @@ const BLOCK_OFFSETS = BLOCK_LENS.map((_, i) =>
 const TOTAL_CHARS = BLOCK_LENS.reduce((a, b) => a + b, 0);
 
 /* Advances a character counter over time once `start` is true. */
-function useTypewriter(start: boolean, total: number, cps = 58) {
+function useTypewriter(start: boolean, total: number, cps = 45) {
   const [typed, setTyped] = useState(0);
 
   useEffect(() => {
@@ -319,7 +319,7 @@ export default function About() {
   }, []);
 
   const years = useCountUp(2, started);
-  const projects = useCountUp(5, started);
+  const projects = useCountUp(15, started);
 
   const typed = useTypewriter(started, TOTAL_CHARS);
   const done = typed >= TOTAL_CHARS;

@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type TouchEvent,
+} from "react";
 import {
   BookOpenText,
   BriefcaseBusiness,
@@ -120,6 +127,27 @@ export default function Projects() {
     setActive((a) => (a + dir + COUNT) % COUNT);
   }, []);
 
+  // Swipe navigation (touch devices). touch-action: pan-y on the stage
+  // keeps vertical page scrolling intact.
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  const onTouchStart = (e: TouchEvent) => {
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY };
+    setPaused(true);
+  };
+
+  const onTouchEnd = (e: TouchEvent) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    setPaused(false);
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+  };
+
   // Auto-advance (paused on hover / off-screen / reduced motion)
   useEffect(() => {
     if (!inView || paused) return;
@@ -141,7 +169,15 @@ export default function Projects() {
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          <div className="pc-stage">
+          <div
+            className="pc-stage"
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+            onTouchCancel={() => {
+              touchStart.current = null;
+              setPaused(false);
+            }}
+          >
             {projects.map((p, i) => {
               // circular offset so the fan wraps around (-2 .. 2 for 5 cards)
               let offset = i - active;

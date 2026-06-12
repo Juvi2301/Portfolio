@@ -52,12 +52,12 @@ export default function Hero() {
         <div className="hero-text-content">
           <div className="hero-divider"></div>
           <h1 className="hero-title">
-            <span className="hero-word" style={{ animationDelay: "0.20s" }}>I&apos;m</span>{" "}
-            <span className="hero-word" style={{ animationDelay: "0.30s" }}>Pritheeve,</span>{" "}
-            <span className="hero-word" style={{ animationDelay: "0.40s" }}>a</span>
+            <span className="hero-word" style={{ animationDelay: "0.25s" }}>I&apos;m</span>{" "}
+            <span className="hero-word" style={{ animationDelay: "0.40s" }}>Pritheeve,</span>{" "}
+            <span className="hero-word" style={{ animationDelay: "0.55s" }}>a</span>
             <br />
-            <span className="hero-word" style={{ animationDelay: "0.55s" }}>Software</span>{" "}
-            <span className="hero-word" style={{ animationDelay: "0.70s" }}>Engineer</span>
+            <span className="hero-word" style={{ animationDelay: "0.75s" }}>Software</span>{" "}
+            <span className="hero-word" style={{ animationDelay: "0.95s" }}>Engineer</span>
           </h1>
           <p className="hero-subtitle">
             Building modern web applications with strong<br />
