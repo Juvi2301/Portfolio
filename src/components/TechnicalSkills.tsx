@@ -110,7 +110,7 @@ export default function TechnicalSkills() {
           style={{ transitionDelay: "0ms" }}
         >
           <h2 className="technical-skills-title">Technical Skills</h2>
-          <div className="technical-skills-divider"></div>
+          <div className={`technical-skills-divider divider-draw${inView ? " is-drawn" : ""}`}></div>
         </div>
 
         <div className="technical-skills-grid">

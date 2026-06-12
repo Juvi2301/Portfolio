@@ -47,9 +47,9 @@ export default function Experience() {
   return (
     <section id="experience" className="experience-section" ref={sectionRef}>
       <div className="experience-container">
-        <div className="experience-title-wrapper">
+        <div className={`experience-title-wrapper title-reveal${grown ? " is-visible" : ""}`}>
           <h2 className="experience-title">Experience</h2>
-          <div className="experience-divider"></div>
+          <div className={`experience-divider divider-draw${grown ? " is-drawn" : ""}`}></div>
         </div>
 
         <div className={`experience-timeline${grown ? " is-grown" : ""}`}>

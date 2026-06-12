@@ -32,7 +32,7 @@ export default function Contact() {
           <div className={`contact-left ct-reveal ct-reveal-left${reveal}`}>
             <div className="contact-subtitle-wrapper">
               <span className="contact-subtitle">Get in Touch</span>
-              <div className="contact-divider"></div>
+              <div className={`contact-divider divider-draw${inView ? " is-drawn" : ""}`}></div>
             </div>
             <h2 className="contact-title">
               Let&apos;s Talk<br />

@@ -131,9 +131,9 @@ export default function Projects() {
   return (
     <section id="projects" className="projects-section" ref={sectionRef}>
       <div className="projects-container">
-        <div className="projects-title-wrapper">
+        <div className={`projects-title-wrapper title-reveal${inView ? " is-visible" : ""}`}>
           <h2 className="projects-title">Projects</h2>
-          <div className="projects-divider"></div>
+          <div className={`projects-divider divider-draw${inView ? " is-drawn" : ""}`}></div>
         </div>
 
         <div

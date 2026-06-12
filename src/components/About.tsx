@@ -333,7 +333,7 @@ export default function About() {
 
         <div className="about-title-wrapper about-scrub" ref={titleRef}>
           <h2 className="about-title">About Me</h2>
-          <div className="about-divider"></div>
+          <div className={`about-divider divider-draw${started ? " is-drawn" : ""}`}></div>
         </div>
 
         <div className="about-body">
