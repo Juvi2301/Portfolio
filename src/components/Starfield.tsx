@@ -27,7 +27,7 @@ const GLOW_STARS: Star[] = (() => {
     top: +(rng() * 100).toFixed(3),
     left: +(rng() * 100).toFixed(3),
     size: +(2 + rng() * 2.6).toFixed(2),
-    dur: +(2.6 + rng() * 3.8).toFixed(2),
+    dur: +(3.4 + rng() * 4.8).toFixed(2),
     delay: +(rng() * 6).toFixed(2),
   }));
 })();
