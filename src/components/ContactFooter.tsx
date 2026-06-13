@@ -34,10 +34,10 @@ export default function ContactFooter() {
                 Higher National Diploma in Information Technology at SLIATE
               </p>
               <div className="contact-footer-socials" aria-label="Social links">
-                <a href="#" className="contact-footer-social" aria-label="GitHub">
+                <a href="https://github.com/Juvi2301" target="_blank" rel="noopener noreferrer" className="contact-footer-social" aria-label="GitHub">
                   <GithubIcon />
                 </a>
-                <a href="#" className="contact-footer-social" aria-label="LinkedIn">
+                <a href="https://www.linkedin.com/in/thayalan-pritheeve" target="_blank" rel="noopener noreferrer" className="contact-footer-social" aria-label="LinkedIn">
                   <LinkedinIcon />
                 </a>
                 <a href="#" className="contact-footer-social" aria-label="Twitter">
