@@ -589,8 +589,9 @@ body {
 .image-fade-bottom {
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
   height: 200px;
   background: linear-gradient(to top, #02040a 0%, transparent 100%);
   z-index: 11;

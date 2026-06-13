@@ -70,9 +70,9 @@ export default function Hero() {
 
         {/* Profile Image (Center) */}
         <div className="hero-image-wrapper">
-          <img 
-            src="/profile.png" 
-            alt="Pritheeve" 
+          <img
+            src="/profile.png"
+            alt="Pritheeve"
             className="hero-image"
           />
           {/* Bottom fade overlay for seamless blending */}
