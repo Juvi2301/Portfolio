@@ -555,6 +555,9 @@ body {
   width: auto;
   object-fit: contain;
   object-position: bottom center;
+  /* Feather the bottom of the photo into the dark background */
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
   /* Entrance: fade up + subtle scale (0.3s delay so the title starts first).
      Then a slow vertical float kicks in for ambient motion. */
   opacity: 0;
@@ -583,19 +586,6 @@ body {
     transform: none;
     animation: none;
   }
-}
-
-/* Fade at the bottom of the image */
-.image-fade-bottom {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 70%;
-  height: 200px;
-  background: linear-gradient(to top, #02040a 0%, transparent 100%);
-  z-index: 11;
-  pointer-events: none;
 }
 
 .circles-layer,

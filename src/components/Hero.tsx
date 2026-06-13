@@ -37,13 +37,13 @@ export default function Hero() {
         {/* Social Icons — direct children of .social-icons-layer so the
             liquid glass library can pick them up (must be direct child of root) */}
         <div className="social-icons-layer">
-          <a href="#" className="icon-wrapper icon-linkedin" aria-label="LinkedIn">
+          <a href="https://www.linkedin.com/in/thayalan-pritheeve" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-linkedin" aria-label="LinkedIn">
             <LinkedinIcon />
           </a>
-          <a href="#" className="icon-wrapper icon-github" aria-label="GitHub">
+          <a href="https://github.com/Juvi2301" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-github" aria-label="GitHub">
             <GithubIcon />
           </a>
-          <a href="#" className="icon-wrapper icon-instagram" aria-label="Instagram">
+          <a href="https://www.instagram.com/stylish_juvi/" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-instagram" aria-label="Instagram">
             <InstagramIcon />
           </a>
         </div>
@@ -71,12 +71,10 @@ export default function Hero() {
         {/* Profile Image (Center) */}
         <div className="hero-image-wrapper">
           <img
-            src="/profile.png"
+            src="/profile.webp"
             alt="Pritheeve"
             className="hero-image"
           />
-          {/* Bottom fade overlay for seamless blending */}
-          <div className="image-fade-bottom"></div>
         </div>
 
       </div>
