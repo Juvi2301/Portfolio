@@ -541,13 +541,19 @@ body {
 .hero-image-wrapper {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: -15px;
   transform: translateX(-50%);
   z-index: 10;
   height: 85vh; 
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  /* Dark backing behind the figure's BODY only (not the full box), so the
+     bottom feather blends into the background and hides the orbit *through*
+     the body, while leaving the margins beside the body clear so the orbit
+     arcs can curve in and get occluded naturally by the figure. */
+  background: linear-gradient(to top, #02040a 0%, #02040a 14%, transparent 30%)
+    no-repeat center bottom / 64% 100%;
 }
 
 .hero-image {
@@ -603,6 +609,15 @@ body {
 .circles-layer {
   z-index: 5;
   clip-path: inset(120px 0 0 0);
+  /* Reveal the orbit on the right side OR across the lower area (the two
+     layers union), filling the empty bottom-left space while keeping the
+     top-left title region clear. */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, transparent 38%, #000 52%),
+    linear-gradient(to bottom, transparent 0%, transparent 50%, #000 78%);
+  mask-image:
+    linear-gradient(to right, transparent 0%, transparent 38%, #000 52%),
+    linear-gradient(to bottom, transparent 0%, transparent 50%, #000 78%);
 }
 
 .social-icons-layer {
