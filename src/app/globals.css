@@ -541,7 +541,7 @@ body {
 .hero-image-wrapper {
   position: absolute;
   left: 50%;
-  bottom: -15px;
+  bottom: 0px;
   transform: translateX(-50%);
   z-index: 10;
   height: 85vh; 
