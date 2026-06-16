@@ -541,7 +541,7 @@ body {
 .hero-image-wrapper {
   position: absolute;
   left: 50%;
-  bottom: -15px;
+  bottom: 0px;
   transform: translateX(-50%);
   z-index: 10;
   height: 85vh; 
@@ -609,15 +609,23 @@ body {
 .circles-layer {
   z-index: 5;
   clip-path: inset(120px 0 0 0);
-  /* Reveal the orbit on the right side OR across the lower area (the two
-     layers union), filling the empty bottom-left space while keeping the
-     top-left title region clear. */
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, transparent 38%, #000 52%),
-    linear-gradient(to bottom, transparent 0%, transparent 50%, #000 78%);
-  mask-image:
-    linear-gradient(to right, transparent 0%, transparent 38%, #000 52%),
-    linear-gradient(to bottom, transparent 0%, transparent 50%, #000 78%);
+  /* Reveal the orbit only to the RIGHT of its own center, so the visible
+     arcs always hug the figure regardless of screen size. The cutoff is
+     anchored to --orbit-center-x (which shifts per breakpoint) instead of a
+     fixed viewport %, which previously let arcs leak left over the title/head
+     on some widths ("excess circle"). */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent calc(var(--orbit-center-x) - 230px),
+    #000 calc(var(--orbit-center-x) - 70px)
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent calc(var(--orbit-center-x) - 230px),
+    #000 calc(var(--orbit-center-x) - 70px)
+  );
 }
 
 .social-icons-layer {
