@@ -13,6 +13,8 @@ import {
   SiAntdesign,
   SiNodedotjs,
   SiExpress,
+  SiSpringboot,
+  SiNestjs,
   SiPhp,
   SiFastify,
   SiPrisma,
@@ -53,6 +55,8 @@ const skillGroups: {
     skills: [
       { name: "Node.js", Icon: SiNodedotjs, color: "#5FA04E" },
       { name: "Express.js", Icon: SiExpress, color: "#B5BCC9" },
+      { name: "Spring Boot", Icon: SiSpringboot, color: "#6DB33F" },
+      { name: "NestJS", Icon: SiNestjs, color: "#E0234E" },
       { name: "PHP", Icon: SiPhp, color: "#8B92C9" },
       { name: "Fastify", Icon: SiFastify, color: "#B5BCC9" },
       { name: "Prisma", Icon: SiPrisma, color: "#8A95F0" },

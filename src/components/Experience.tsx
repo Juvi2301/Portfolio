@@ -6,7 +6,7 @@ import { Code2, UserRound } from "lucide-react";
 const experiences = [
   {
     id: "associate",
-    period: "Past",
+    period: "Feb 2026 – Present",
     title: "Associate Software Engineer",
     company: "Yarl Ventures",
     side: "right",
@@ -15,7 +15,7 @@ const experiences = [
   },
   {
     id: "intern",
-    period: "Past",
+    period: "Aug 2025 – Feb 2026",
     title: "Intern Software Engineer",
     company: "Yarl Ventures",
     side: "left",
