@@ -26,7 +26,7 @@ While `file` is `null`, the Resume section offers "Request CV by email" and "Ask
 
 ## Contact form
 
-There is no backend or email service. After validation the form opens the visitor's email app (`mailto:`) or WhatsApp (`wa.me`) with the message filled in, and the status line says the visitor still has to press send there. The WhatsApp number is `siteConfig.phone.whatsapp`; confirm it before launch.
+There is no backend or email service. After validation the form opens the visitor's email app (`mailto:`) or WhatsApp (`wa.me`) with the message filled in, and the status line says the visitor still has to press send there. The WhatsApp number is `siteConfig.phone.whatsapp` (confirmed 2026-11-14).
 
 ## Liquid Glass
 

@@ -25,8 +25,8 @@ export const siteConfig = {
     linkedin: "https://www.linkedin.com/in/thayalan-pritheeve",
     instagram: "https://www.instagram.com/stylish_juvi/",
   },
-  // Number as listed in the footer before the redesign. Confirm it is the
-  // WhatsApp number before launch: the WhatsApp links below are built from it.
+  // Phone and WhatsApp number, confirmed by Tisankan on 2026-11-14. Every
+  // WhatsApp link on the site is built from `whatsapp` (digits only).
   phone: {
     display: "+94 77 378 0900",
     e164: "+94773780900",
