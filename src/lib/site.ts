@@ -1,4 +1,5 @@
-// Central site config used for SEO (metadata, sitemap, robots, OG images).
+// Central site config: SEO (metadata, sitemap, robots, OG images) and every
+// contact channel the page links to. Change a value here, not in a component.
 export const siteConfig = {
   name: "Pritheeve",
   fullName: "Thayalan Pritheeve",
@@ -22,5 +23,31 @@ export const siteConfig = {
   socials: {
     github: "https://github.com/Juvi2301",
     linkedin: "https://www.linkedin.com/in/thayalan-pritheeve",
+    instagram: "https://www.instagram.com/stylish_juvi/",
+  },
+  // Phone and WhatsApp number, confirmed by Tisankan on 2026-11-14. Every
+  // WhatsApp link on the site is built from `whatsapp` (digits only).
+  phone: {
+    display: "+94 77 378 0900",
+    e164: "+94773780900",
+    whatsapp: "94773780900",
+  },
+  whatsappGreeting: "Hi Pritheeve, I saw your portfolio and would like to talk about a project.",
+  // Set `file` to a PDF in /public (for example "/Thayalan-Pritheeve-CV.pdf")
+  // to turn on the View and Download buttons. While it is null the Resume
+  // section offers "Request my CV" by email and WhatsApp instead.
+  resume: {
+    file: null as string | null,
+    downloadName: "Thayalan-Pritheeve-CV.pdf",
   },
 } as const;
+
+export function whatsappLink(message: string = siteConfig.whatsappGreeting) {
+  return `https://wa.me/${siteConfig.phone.whatsapp}?text=${encodeURIComponent(message)}`;
+}
+
+export function mailtoLink(subject: string, body?: string) {
+  const params = [`subject=${encodeURIComponent(subject)}`];
+  if (body) params.push(`body=${encodeURIComponent(body)}`);
+  return `mailto:${siteConfig.email}?${params.join("&")}`;
+}
