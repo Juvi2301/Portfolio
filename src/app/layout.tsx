@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import LiquidGlassFilter from "@/components/LiquidGlassFilter";
 import Starfield from "@/components/Starfield";
+import SpotlightEffect from "@/components/SpotlightEffect";
 import { siteConfig } from "@/lib/site";
 
 const geistSans = Geist({
@@ -13,6 +14,12 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+// Display face for section titles and large figures. The approved hero keeps Geist.
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
 });
 
@@ -84,7 +91,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable}`}>
       <body>
         <script
           type="application/ld+json"
@@ -98,6 +105,7 @@ export default function RootLayout({
         {children}
 
         <LiquidGlassFilter />
+        <SpotlightEffect />
       </body>
     </html>
   );

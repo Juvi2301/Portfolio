@@ -37,13 +37,13 @@ export default function Hero() {
         {/* Social Icons — direct children of .social-icons-layer so the
             liquid glass library can pick them up (must be direct child of root) */}
         <div className="social-icons-layer">
-          <a href="https://www.linkedin.com/in/thayalan-pritheeve" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-linkedin" aria-label="LinkedIn">
+          <a href="https://www.linkedin.com/in/thayalan-pritheeve" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-linkedin" data-glass="orb" aria-label="LinkedIn">
             <LinkedinIcon />
           </a>
-          <a href="https://github.com/Juvi2301" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-github" aria-label="GitHub">
+          <a href="https://github.com/Juvi2301" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-github" data-glass="orb" aria-label="GitHub">
             <GithubIcon />
           </a>
-          <a href="https://www.instagram.com/stylish_juvi/" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-instagram" aria-label="Instagram">
+          <a href="https://www.instagram.com/stylish_juvi/" target="_blank" rel="noopener noreferrer" className="icon-wrapper icon-instagram" data-glass="orb" aria-label="Instagram">
             <InstagramIcon />
           </a>
         </div>
@@ -63,17 +63,23 @@ export default function Hero() {
             Building modern web applications with strong<br />
             focus on frontend and backend development.
           </p>
-          <a href="#about" className="btn-down">
-            <ChevronDown size={30} strokeWidth={2} />
+          <a href="#about" className="btn-down" data-glass="button" aria-label="Scroll to About">
+            <ChevronDown size={30} strokeWidth={2} aria-hidden="true" />
           </a>
         </div>
 
         {/* Profile Image (Center) */}
         <div className="hero-image-wrapper">
+          {/* Plain <img> on purpose: the approved hero sizes it by height, and
+              fetchPriority puts this LCP image first in the queue. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/profile.webp"
             alt="Pritheeve"
             className="hero-image"
+            width={1298}
+            height={1740}
+            fetchPriority="high"
           />
         </div>
 

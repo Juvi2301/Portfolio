@@ -3,46 +3,36 @@
 import { useEffect } from "react";
 
 /*
-  Liquid glass effect — direct port of the SVG/Canvas displacement-map
-  technique from https://github.com/archisvaze/liquid-glass
+  Liquid glass: SVG displacement + specular maps applied through
+  `backdrop-filter: url(#id)`. Technique ported from
+  https://github.com/archisvaze/liquid-glass.
 
-  Each glass element gets its own per-element SVG filter (displacement map
-  + specular highlight map are sized to match the element's pixels), and
-  the filter is applied via `backdrop-filter: url(#id)`. Resizes regenerate
-  the maps automatically.
+  Opt an element in with `data-glass="<preset>"`. The element's own CSS glass
+  (blur, rim, fill) is what renders first and is the fallback everywhere the
+  advanced filter does not run: Safari, Firefox, iOS, data saver, low-memory
+  devices, reduced transparency, and surfaces larger than MAX_GLASS_AREA.
 
-  Falls back to the CSS gradients already on each element on browsers that
-  don't support backdrop-filter with SVG urls (Safari/iOS).
+  Cost control, measured against the first version (one 270-900 ms long task
+  on load for 22 filters):
+  - maps are built only when an element comes near the viewport,
+  - one element per idle slice, never inside the first paint,
+  - elements with the same size, radii and preset share one filter,
+  - pixel loops skip the flat interior and touch only the bezel ring,
+  - PNG encoding runs through async canvas.toBlob instead of toDataURL.
 */
 
-type SurfaceFn = (x: number) => number;
-
-const SURFACE_FNS: Record<string, SurfaceFn> = {
-  convex_squircle: (x) => Math.pow(1 - Math.pow(1 - x, 4), 0.25),
-  convex_circle: (x) => Math.sqrt(1 - (1 - x) * (1 - x)),
-  concave: (x) => 1 - Math.sqrt(1 - (1 - x) * (1 - x)),
-  lip: (x) => {
-    const convex = Math.pow(1 - Math.pow(1 - Math.min(x * 2, 1), 4), 0.25);
-    const concave = 1 - Math.sqrt(1 - (1 - x) * (1 - x)) + 0.1;
-    const t = 6 * x ** 5 - 15 * x ** 4 + 10 * x ** 3;
-    return convex * (1 - t) + concave * t;
-  },
-};
-
 type GlassConfig = {
-  surface?: keyof typeof SURFACE_FNS;
-  thickness?: number; // glass thickness
-  bezel?: number; // bezel width (clamped to <= radius - 1)
-  ior?: number; // index of refraction
-  scaleRatio?: number; // displacement scale ratio
-  blur?: number; // SVG-internal gaussian blur stddev (subtle, pre-displacement)
-  cssBlur?: number; // CSS backdrop-filter blur in px (frosted glass look)
-  specOpacity?: number;
-  specSat?: number;
+  thickness: number; // glass thickness
+  bezel: number; // bezel width (clamped to <= radius - 1)
+  ior: number; // index of refraction
+  scaleRatio: number; // displacement scale ratio
+  blur: number; // SVG-internal gaussian blur stddev, before displacement
+  cssBlur: number; // CSS backdrop blur in px, composed before the SVG filter
+  specOpacity: number;
+  specSat: number;
 };
 
-const DEFAULT_CONFIG: Required<GlassConfig> = {
-  surface: "convex_squircle",
+const DEFAULT_CONFIG: GlassConfig = {
   thickness: 80,
   bezel: 32,
   ior: 1.5,
@@ -53,295 +43,316 @@ const DEFAULT_CONFIG: Required<GlassConfig> = {
   specSat: 3.2,
 };
 
-// Per-selector tuning. Smaller elements need smaller bezels so the
-// refraction doesn't dominate the whole shape.
-const SECTION_CONFIGS: Array<{ selector: string; config?: GlassConfig }> = [
-  { selector: ".nav-container", config: { bezel: 28, thickness: 60, blur: 1, cssBlur: 4 } },
-  { selector: ".icon-wrapper", config: { bezel: 14, thickness: 28, ior: 1.6 } },
-  { selector: ".btn-down", config: { bezel: 14, thickness: 30 } },
-  { selector: ".liquid-glass-badge", config: { bezel: 16, thickness: 32 } },
-  { selector: ".about-card", config: { bezel: 38, thickness: 90, blur: 0.3 } },
-  { selector: ".experience-card", config: { bezel: 24, thickness: 60 } },
-  { selector: ".experience-node", config: { bezel: 18, thickness: 36 } },
-  { selector: ".technical-skill-card", config: { bezel: 26, thickness: 60 } },
-  { selector: ".project-card", config: { bezel: 32, thickness: 70 } },
-  { selector: ".contact-send-btn", config: { bezel: 12, thickness: 26 } },
-  { selector: ".contact-form", config: { bezel: 38, thickness: 90, blur: 0.3 } },
-  { selector: ".contact-footer-shell", config: { bezel: 48, thickness: 110, blur: 0.3 } },
-  { selector: ".contact-footer-social", config: { bezel: 10, thickness: 22 } },
-];
+// Smaller elements need smaller bezels so the refraction does not dominate
+// the whole shape. nav, orb and button keep the values the hero shipped with.
+const PRESETS: Record<string, Partial<GlassConfig>> = {
+  nav: { bezel: 28, thickness: 60, blur: 1, cssBlur: 4 },
+  orb: { bezel: 14, thickness: 28, ior: 1.6 },
+  button: { bezel: 14, thickness: 30 },
+  pill: { bezel: 12, thickness: 24 },
+  panel: { bezel: 30, thickness: 80, blur: 0.3, cssBlur: 10 },
+};
 
-function calculateRefractionProfile(
-  glassThickness: number,
-  bezelWidth: number,
-  heightFn: SurfaceFn,
-  ior: number,
-  samples = 128
-): Float64Array {
+const MAX_GLASS_AREA = 520_000; // px. Larger surfaces keep the CSS glass.
+const VIEW_MARGIN = "240px 0px";
+const RESIZE_DEBOUNCE_MS = 160;
+const IDLE_TIMEOUT_MS = 700;
+const MIN_IDLE_MS_FOR_NEXT = 10;
+const PROFILE_SAMPLES = 128;
+const SPECULAR_ANGLE = Math.PI / 3;
+
+type Radii = readonly [number, number, number, number]; // TL, TR, BR, BL
+
+type FilterEntry = {
+  filterId: string;
+  users: Set<HTMLElement>;
+  cssBlur: number;
+  ready: boolean;
+  urls: string[];
+};
+
+const squircle = (x: number) => Math.pow(1 - Math.pow(1 - x, 4), 0.25);
+
+function calculateRefractionProfile(thickness: number, bezel: number, ior: number): Float64Array {
   const eta = 1 / ior;
-  function refract(nx: number, ny: number): [number, number] | null {
-    const dot = ny;
-    const k = 1 - eta * eta * (1 - dot * dot);
-    if (k < 0) return null;
-    const sq = Math.sqrt(k);
-    return [-(eta * dot + sq) * nx, eta - (eta * dot + sq) * ny];
-  }
-  const profile = new Float64Array(samples);
-  for (let i = 0; i < samples; i++) {
-    const x = i / samples;
-    const y = heightFn(x);
+  const profile = new Float64Array(PROFILE_SAMPLES);
+  for (let i = 0; i < PROFILE_SAMPLES; i++) {
+    const x = i / PROFILE_SAMPLES;
+    const y = squircle(x);
     const dx = x < 1 ? 0.0001 : -0.0001;
-    const y2 = heightFn(x + dx);
-    const deriv = (y2 - y) / dx;
+    const deriv = (squircle(x + dx) - y) / dx;
     const mag = Math.sqrt(deriv * deriv + 1);
-    const ref = refract(-deriv / mag, -1 / mag);
-    if (!ref) {
-      profile[i] = 0;
-      continue;
-    }
-    profile[i] = ref[0] * ((y * bezelWidth + glassThickness) / ref[1]);
+    const nx = -deriv / mag;
+    const ny = -1 / mag;
+    const k = 1 - eta * eta * (1 - ny * ny);
+    if (k < 0) continue;
+    const sq = Math.sqrt(k);
+    const refX = -(eta * ny + sq) * nx;
+    const refY = eta - (eta * ny + sq) * ny;
+    profile[i] = refX * ((y * bezel + thickness) / refY);
   }
   return profile;
 }
 
-type Radii = readonly [number, number, number, number]; // TL, TR, BR, BL
-
 /**
- * Walk every pixel and project it into a (r, x, y) local frame depending on
- * whether it sits in a corner or edge of the asymmetric rounded rectangle.
- *
- * Corners use their own radius. Edges use a "virtual radius" = bezelWidth + 1
- * so the bezel-depth math (fromSide = r - dist) still produces a clean strip
- * of constant thickness along the edge.
+ * Project a pixel into the (r, x, y) frame of the corner or edge it sits in.
+ * Edges use a virtual radius of bezel + 1 so the bezel strip keeps a constant
+ * thickness. Returns null for the flat interior.
  */
-function localizePixel(
-  x1: number,
-  y1: number,
-  w: number,
-  h: number,
-  radii: Radii,
-  bezelWidth: number
-): { r: number; x: number; y: number } | null {
+function localizePixel(x1: number, y1: number, w: number, h: number, radii: Radii, bezel: number) {
   const [rTL, rTR, rBR, rBL] = radii;
-  // Corners first
   if (x1 < rTL && y1 < rTL) return { r: rTL, x: x1 - rTL, y: y1 - rTL };
   if (x1 >= w - rTR && y1 < rTR) return { r: rTR, x: x1 - (w - rTR), y: y1 - rTR };
   if (x1 >= w - rBR && y1 >= h - rBR) return { r: rBR, x: x1 - (w - rBR), y: y1 - (h - rBR) };
   if (x1 < rBL && y1 >= h - rBL) return { r: rBL, x: x1 - rBL, y: y1 - (h - rBL) };
 
-  // Edges — use virtual r so the bezel strip stays constant-thickness
-  const er = bezelWidth + 1;
-  // Top edge
-  if (y1 < bezelWidth && x1 >= rTL && x1 < w - rTR) {
-    return { r: er, x: 0, y: y1 - er };
-  }
-  // Bottom edge
-  if (y1 >= h - bezelWidth && x1 >= rBL && x1 < w - rBR) {
-    return { r: er, x: 0, y: y1 - (h - er) };
-  }
-  // Left edge
-  if (x1 < bezelWidth && y1 >= rTL && y1 < h - rBL) {
-    return { r: er, x: x1 - er, y: 0 };
-  }
-  // Right edge
-  if (x1 >= w - bezelWidth && y1 >= rTR && y1 < h - rBR) {
-    return { r: er, x: x1 - (w - er), y: 0 };
-  }
+  const er = bezel + 1;
+  if (y1 < bezel && x1 >= rTL && x1 < w - rTR) return { r: er, x: 0, y: y1 - er };
+  if (y1 >= h - bezel && x1 >= rBL && x1 < w - rBR) return { r: er, x: 0, y: y1 - (h - er) };
+  if (x1 < bezel && y1 >= rTL && y1 < h - rBL) return { r: er, x: x1 - er, y: 0 };
+  if (x1 >= w - bezel && y1 >= rTR && y1 < h - rBR) return { r: er, x: x1 - (w - er), y: 0 };
   return null;
 }
 
-function generateDisplacementMap(
+function createContext(w: number, h: number) {
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  // CPU-backed canvas: putImageData + encode without a GPU read-back.
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  return { canvas, ctx };
+}
+
+function paintDisplacementMap(
   w: number,
   h: number,
   radii: Radii,
-  bezelWidth: number,
+  bezel: number,
   profile: Float64Array,
   maxDisp: number
-): string {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d");
-  if (!ctx) return "";
+): HTMLCanvasElement | null {
+  const { canvas, ctx } = createContext(w, h);
+  if (!ctx) return null;
   const img = ctx.createImageData(w, h);
   const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    d[i] = 128;
-    d[i + 1] = 128;
-    d[i + 2] = 0;
-    d[i + 3] = 255;
-  }
+  // Neutral displacement (R=128, G=128, B=0, A=255) everywhere, written as
+  // little-endian 32-bit words in one pass.
+  new Uint32Array(d.buffer).fill(0xff008080);
 
-  const S = profile.length;
+  // Every non-neutral pixel lies within `band` of an edge, so the interior
+  // of each middle row is skipped.
+  const band = Math.ceil(Math.max(bezel, ...radii)) + 1;
+  const samples = profile.length;
 
   for (let y1 = 0; y1 < h; y1++) {
+    const fullRow = y1 < band || y1 >= h - band;
     for (let x1 = 0; x1 < w; x1++) {
-      const loc = localizePixel(x1, y1, w, h, radii, bezelWidth);
+      if (!fullRow && x1 >= band && x1 < w - band) x1 = w - band;
+      const loc = localizePixel(x1, y1, w, h, radii, bezel);
       if (!loc) continue;
       const { r, x, y } = loc;
       const rSq = r * r;
       const r1Sq = (r + 1) ** 2;
-      const rBSq = Math.max(r - bezelWidth, 0) ** 2;
+      const rBSq = Math.max(r - bezel, 0) ** 2;
       const dSq = x * x + y * y;
       if (dSq > r1Sq || dSq < rBSq) continue;
       const dist = Math.sqrt(dSq);
-      const fromSide = r - dist;
-      const op = dSq < rSq ? 1 : 1 - (dist - Math.sqrt(rSq)) / (Math.sqrt(r1Sq) - Math.sqrt(rSq));
+      const op = dSq < rSq ? 1 : 1 - (dist - r) / (Math.sqrt(r1Sq) - r);
       if (op <= 0 || dist === 0) continue;
-      const cos = x / dist;
-      const sin = y / dist;
-      const bi = Math.min(((fromSide / bezelWidth) * S) | 0, S - 1);
+      const bi = Math.min((((r - dist) / bezel) * samples) | 0, samples - 1);
       const disp = profile[bi] || 0;
-      const dX = (-cos * disp) / maxDisp;
-      const dY = (-sin * disp) / maxDisp;
       const idx = (y1 * w + x1) * 4;
-      d[idx] = (128 + dX * 127 * op + 0.5) | 0;
-      d[idx + 1] = (128 + dY * 127 * op + 0.5) | 0;
+      d[idx] = (128 + ((-(x / dist) * disp) / maxDisp) * 127 * op + 0.5) | 0;
+      d[idx + 1] = (128 + ((-(y / dist) * disp) / maxDisp) * 127 * op + 0.5) | 0;
     }
   }
   ctx.putImageData(img, 0, 0);
-  return c.toDataURL();
+  return canvas;
 }
 
-function generateSpecularMap(
-  w: number,
-  h: number,
-  radii: Radii,
-  bezelWidth: number,
-  angle = Math.PI / 3
-): string {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d");
-  if (!ctx) return "";
+function paintSpecularMap(w: number, h: number, radii: Radii, bezel: number): HTMLCanvasElement | null {
+  const { canvas, ctx } = createContext(w, h);
+  if (!ctx) return null;
   const img = ctx.createImageData(w, h);
   const d = img.data;
-  d.fill(0);
+  const lightX = Math.cos(SPECULAR_ANGLE);
+  const lightY = Math.sin(SPECULAR_ANGLE);
 
-  const sv = [Math.cos(angle), Math.sin(angle)];
+  // The highlight is a rim: `edge` below is 0 once a pixel is 2px inside the
+  // shape, so only the corners and a thin edge strip need visiting.
+  const band = Math.ceil(Math.max(3, ...radii)) + 1;
 
   for (let y1 = 0; y1 < h; y1++) {
+    const fullRow = y1 < band || y1 >= h - band;
     for (let x1 = 0; x1 < w; x1++) {
-      const loc = localizePixel(x1, y1, w, h, radii, bezelWidth);
+      if (!fullRow && x1 >= band && x1 < w - band) x1 = w - band;
+      const loc = localizePixel(x1, y1, w, h, radii, bezel);
       if (!loc) continue;
       const { r, x, y } = loc;
       const rSq = r * r;
       const r1Sq = (r + 1) ** 2;
-      const rBSq = Math.max(r - bezelWidth, 0) ** 2;
+      const rBSq = Math.max(r - bezel, 0) ** 2;
       const dSq = x * x + y * y;
       if (dSq > r1Sq || dSq < rBSq) continue;
       const dist = Math.sqrt(dSq);
-      const fromSide = r - dist;
-      const op = dSq < rSq ? 1 : 1 - (dist - Math.sqrt(rSq)) / (Math.sqrt(r1Sq) - Math.sqrt(rSq));
+      const op = dSq < rSq ? 1 : 1 - (dist - r) / (Math.sqrt(r1Sq) - r);
       if (op <= 0 || dist === 0) continue;
-      const cos = x / dist;
-      const sin = -y / dist;
-      const dot = Math.abs(cos * sv[0] + sin * sv[1]);
+      const fromSide = r - dist;
+      const dot = Math.abs((x / dist) * lightX + (-y / dist) * lightY);
       const edge = Math.sqrt(Math.max(0, 1 - (1 - fromSide) ** 2));
       const coeff = dot * edge;
       const col = (255 * coeff) | 0;
-      const alpha = (col * coeff * op) | 0;
       const idx = (y1 * w + x1) * 4;
       d[idx] = col;
       d[idx + 1] = col;
       d[idx + 2] = col;
-      d[idx + 3] = alpha;
+      d[idx + 3] = (col * coeff * op) | 0;
     }
   }
   ctx.putImageData(img, 0, 0);
-  return c.toDataURL();
+  return canvas;
 }
 
-function getElementRadii(el: HTMLElement): Radii {
+function encodeCanvas(canvas: HTMLCanvasElement): Promise<string> {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(blob ? URL.createObjectURL(blob) : canvas.toDataURL());
+    });
+  });
+}
+
+function readRadii(el: HTMLElement, w: number, h: number): Radii {
   const cs = window.getComputedStyle(el);
-  const parse = (v: string) => {
-    const n = parseFloat(v);
-    return Number.isNaN(n) || n <= 0 ? 0 : n;
+  // Clamp each corner against the half-extent so a big radius on a small
+  // element still produces a valid shape.
+  const halfMin = Math.min(w, h) / 2 - 1;
+  const clampRadius = (value: string) => {
+    const n = parseFloat(value);
+    if (Number.isNaN(n) || n <= 0) return 0;
+    return Math.min(n, halfMin);
   };
   return [
-    parse(cs.borderTopLeftRadius),
-    parse(cs.borderTopRightRadius),
-    parse(cs.borderBottomRightRadius),
-    parse(cs.borderBottomLeftRadius),
+    clampRadius(cs.borderTopLeftRadius),
+    clampRadius(cs.borderTopRightRadius),
+    clampRadius(cs.borderBottomRightRadius),
+    clampRadius(cs.borderBottomLeftRadius),
   ] as const;
 }
 
-type LensState = {
-  el: HTMLElement;
-  filterId: string;
-  config: Required<GlassConfig>;
-  lastW: number;
-  lastH: number;
-  cleanup?: () => void;
+type NavigatorHints = Navigator & {
+  userAgentData?: { brands: { brand: string }[] };
+  connection?: { saveData?: boolean };
+  deviceMemory?: number;
 };
+
+function canRunAdvancedGlass(): boolean {
+  const nav = navigator as NavigatorHints;
+  // Only Chromium renders SVG filters inside backdrop-filter. Safari and
+  // Firefox (and every iOS browser) have no userAgentData, so they keep the
+  // CSS glass and skip the map work entirely.
+  const isChromium = nav.userAgentData?.brands.some((b) => b.brand === "Chromium") ?? false;
+  if (!isChromium || !CSS.supports("backdrop-filter", "url(#a)")) return false;
+  if (nav.connection?.saveData) return false;
+  if (nav.deviceMemory !== undefined && nav.deviceMemory < 4) return false;
+  if (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency <= 2) return false;
+  if (window.matchMedia("(prefers-reduced-transparency: reduce)").matches) return false;
+  return true;
+}
 
 export default function LiquidGlassFilter() {
   useEffect(() => {
-    // Top-level <svg><defs> for all filters
+    if (!canRunAdvancedGlass()) return;
+
+    const elements = Array.from(document.querySelectorAll<HTMLElement>("[data-glass]"));
+    if (elements.length === 0) return;
+
     const SVG_NS = "http://www.w3.org/2000/svg";
     const svgRoot = document.createElementNS(SVG_NS, "svg");
     svgRoot.setAttribute("width", "0");
     svgRoot.setAttribute("height", "0");
+    svgRoot.setAttribute("aria-hidden", "true");
     svgRoot.setAttribute("color-interpolation-filters", "sRGB");
-    svgRoot.style.cssText =
-      "position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;left:-9999px";
+    svgRoot.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;left:-9999px";
     const defs = document.createElementNS(SVG_NS, "defs");
-    defs.id = "liquid-glass-defs";
     svgRoot.appendChild(defs);
     document.body.appendChild(svgRoot);
 
+    const filters = new Map<string, FilterEntry>(); // cache key -> shared filter
+    const elementKey = new Map<HTMLElement, string>();
+    const lastSize = new Map<HTMLElement, { w: number; h: number }>();
+    const activated = new Set<HTMLElement>();
+    const queue: HTMLElement[] = [];
     let nextId = 0;
-    const lenses: LensState[] = [];
+    let disposed = false;
+    let idleHandle = 0;
+    let usingIdleCallback = false;
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
-    function rebuildFilter(state: LensState) {
-      const { el, config } = state;
-      const w = el.offsetWidth;
-      const h = el.offsetHeight;
-      if (w < 4 || h < 4) return;
-      state.lastW = w;
-      state.lastH = h;
+    function applyFilter(el: HTMLElement, entry: FilterEntry) {
+      const blur = entry.cssBlur > 0 ? `blur(${entry.cssBlur}px) ` : "";
+      const value = `${blur}url(#${entry.filterId})`;
+      el.style.backdropFilter = value;
+      el.style.setProperty("-webkit-backdrop-filter", value);
+      el.dataset.glassActive = "";
+    }
 
-      const rawRadii = getElementRadii(el);
-      // Clamp each corner against the element's half-extent so a 60px corner
-      // on a tiny element falls back gracefully.
-      const halfMin = Math.min(w, h) / 2 - 1;
-      const radii = rawRadii.map((r) => Math.max(0, Math.min(r, halfMin))) as unknown as Radii;
-      const maxRadius = Math.max(...radii);
-      if (maxRadius < 2) return;
-      // Bezel can't be larger than the smallest non-zero corner — otherwise
-      // the bezel ring eats through to the inside of small corners.
-      const nonZeroRadii = radii.filter((r) => r > 0);
-      const minCornerR = nonZeroRadii.length > 0 ? Math.min(...nonZeroRadii) : maxRadius;
-      const bezel = Math.max(2, Math.min(config.bezel, minCornerR - 1, halfMin));
+    function clearFilter(el: HTMLElement) {
+      el.style.backdropFilter = "";
+      el.style.removeProperty("-webkit-backdrop-filter");
+      delete el.dataset.glassActive;
+    }
 
-      const heightFn = SURFACE_FNS[config.surface] ?? SURFACE_FNS.convex_squircle;
-      const profile = calculateRefractionProfile(
-        config.thickness,
-        bezel,
-        heightFn,
-        config.ior,
-        128
-      );
-      const maxDisp = Math.max(...Array.from(profile).map(Math.abs)) || 1;
-      const dispUrl = generateDisplacementMap(w, h, radii, bezel, profile, maxDisp);
-      const specUrl = generateSpecularMap(w, h, radii, bezel * 2.5);
-      const scale = maxDisp * config.scaleRatio;
+    function destroyEntry(key: string, entry: FilterEntry) {
+      filters.delete(key);
+      defs.querySelector(`#${entry.filterId}`)?.remove();
+      entry.urls.forEach((url) => {
+        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+      });
+    }
 
-      let filter = defs.querySelector(`#${state.filterId}`) as SVGFilterElement | null;
-      if (!filter) {
-        filter = document.createElementNS(SVG_NS, "filter") as SVGFilterElement;
-        filter.id = state.filterId;
-        filter.setAttribute("x", "0%");
-        filter.setAttribute("y", "0%");
-        filter.setAttribute("width", "100%");
-        filter.setAttribute("height", "100%");
-        defs.appendChild(filter);
+    // Detach an element from its shared filter; the last user frees it.
+    function releaseElement(el: HTMLElement) {
+      const key = elementKey.get(el);
+      if (!key) return;
+      elementKey.delete(el);
+      clearFilter(el);
+      const entry = filters.get(key);
+      if (!entry) return;
+      entry.users.delete(el);
+      if (entry.users.size === 0) destroyEntry(key, entry);
+    }
+
+    async function buildFilter(key: string, entry: FilterEntry, w: number, h: number, radii: Radii, config: GlassConfig) {
+      const nonZero = radii.filter((r) => r > 0);
+      const minCorner = Math.min(...nonZero);
+      const bezel = Math.max(2, Math.min(config.bezel, minCorner - 1, Math.min(w, h) / 2 - 1));
+      const profile = calculateRefractionProfile(config.thickness, bezel, config.ior);
+      let maxDisp = 0;
+      for (let i = 0; i < profile.length; i++) maxDisp = Math.max(maxDisp, Math.abs(profile[i]));
+      if (maxDisp === 0) maxDisp = 1;
+
+      const dispCanvas = paintDisplacementMap(w, h, radii, bezel, profile, maxDisp);
+      const specCanvas = paintSpecularMap(w, h, radii, bezel * 2.5);
+      if (!dispCanvas || !specCanvas) return;
+
+      const [dispUrl, specUrl] = await Promise.all([encodeCanvas(dispCanvas), encodeCanvas(specCanvas)]);
+      entry.urls = [dispUrl, specUrl];
+      // The element may have resized or unmounted while the PNGs encoded.
+      if (disposed || filters.get(key) !== entry || entry.users.size === 0) {
+        destroyEntry(key, entry);
+        return;
       }
+
+      const filter = document.createElementNS(SVG_NS, "filter");
+      filter.id = entry.filterId;
+      filter.setAttribute("x", "0%");
+      filter.setAttribute("y", "0%");
+      filter.setAttribute("width", "100%");
+      filter.setAttribute("height", "100%");
       filter.innerHTML = `
         <feGaussianBlur in="SourceGraphic" stdDeviation="${config.blur}" result="blurred_source" />
         <feImage href="${dispUrl}" x="0" y="0" width="${w}" height="${h}" result="disp_map" />
-        <feDisplacementMap in="blurred_source" in2="disp_map" scale="${scale}"
+        <feDisplacementMap in="blurred_source" in2="disp_map" scale="${maxDisp * config.scaleRatio}"
           xChannelSelector="R" yChannelSelector="G" result="displaced" />
         <feColorMatrix in="displaced" type="saturate" values="${config.specSat}" result="displaced_sat" />
         <feImage href="${specUrl}" x="0" y="0" width="${w}" height="${h}" result="spec_layer" />
@@ -352,64 +363,117 @@ export default function LiquidGlassFilter() {
         <feBlend in="spec_masked" in2="displaced" mode="normal" result="with_sat" />
         <feBlend in="spec_faded" in2="with_sat" mode="normal" />
       `;
-
-      // Compose: CSS blur first (frosted glass), then SVG displacement
-      const cssBlur = config.cssBlur > 0 ? `blur(${config.cssBlur}px) ` : "";
-      const value = `${cssBlur}url(#${state.filterId})`;
-      el.style.backdropFilter = value;
-      // @ts-expect-error vendor prefix
-      el.style.webkitBackdropFilter = value;
+      defs.appendChild(filter);
+      entry.ready = true;
+      entry.users.forEach((user) => applyFilter(user, entry));
     }
 
-    // Find and set up all glass elements
-    for (const { selector, config: cfgOverride } of SECTION_CONFIGS) {
-      const elements = document.querySelectorAll<HTMLElement>(selector);
-      elements.forEach((el) => {
-        const filterId = `lg-filter-${nextId++}`;
-        const config: Required<GlassConfig> = {
-          ...DEFAULT_CONFIG,
-          ...cfgOverride,
-        };
-        const state: LensState = { el, filterId, config, lastW: 0, lastH: 0 };
-        rebuildFilter(state);
-        lenses.push(state);
-      });
+    function buildLens(el: HTMLElement) {
+      if (!el.isConnected) return;
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      lastSize.set(el, { w, h });
+      if (w < 4 || h < 4 || w * h > MAX_GLASS_AREA) return;
+
+      const radii = readRadii(el, w, h);
+      if (Math.max(...radii) < 2) return;
+
+      const preset = el.dataset.glass || "panel";
+      const config: GlassConfig = { ...DEFAULT_CONFIG, ...PRESETS[preset] };
+      const key = `${preset}|${w}x${h}|${radii.join(",")}`;
+      if (elementKey.get(el) === key) return;
+      releaseElement(el);
+
+      let entry = filters.get(key);
+      const isNew = !entry;
+      if (!entry) {
+        entry = { filterId: `lg-${nextId++}`, users: new Set(), cssBlur: config.cssBlur, ready: false, urls: [] };
+        filters.set(key, entry);
+      }
+      entry.users.add(el);
+      elementKey.set(el, key);
+
+      if (entry.ready) applyFilter(el, entry);
+      else if (isNew) void buildFilter(key, entry, w, h, radii, config);
     }
 
-    console.log(`[liquid-glass] applied to ${lenses.length} element(s)`);
+    function runQueue(deadline?: IdleDeadline) {
+      idleHandle = 0;
+      while (queue.length > 0 && !disposed) {
+        const el = queue.shift();
+        if (el) buildLens(el);
+        if (!deadline || deadline.timeRemaining() < MIN_IDLE_MS_FOR_NEXT) break;
+      }
+      if (queue.length > 0 && !disposed) scheduleQueue();
+    }
 
-    // Resize observer — regenerate maps when an element resizes by more than 1px
-    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-    const dirty = new Set<LensState>();
-    const observer = new ResizeObserver((entries) => {
+    function scheduleQueue() {
+      if (idleHandle) return;
+      if (typeof window.requestIdleCallback === "function") {
+        usingIdleCallback = true;
+        idleHandle = window.requestIdleCallback(runQueue, { timeout: IDLE_TIMEOUT_MS });
+      } else {
+        idleHandle = window.setTimeout(() => runQueue(), 32);
+      }
+    }
+
+    function enqueue(el: HTMLElement) {
+      if (!queue.includes(el)) queue.push(el);
+      scheduleQueue();
+    }
+
+    const viewObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const el = entry.target as HTMLElement;
+          viewObserver.unobserve(el);
+          activated.add(el);
+          enqueue(el);
+        }
+      },
+      { rootMargin: VIEW_MARGIN }
+    );
+
+    // Rebuild only elements that are already active and really changed size.
+    const resizeObserver = new ResizeObserver((entries) => {
+      let changed = false;
       for (const entry of entries) {
-        const target = entry.target as HTMLElement;
-        const state = lenses.find((s) => s.el === target);
-        if (!state) continue;
-        const w = target.offsetWidth;
-        const h = target.offsetHeight;
-        if (Math.abs(w - state.lastW) > 1 || Math.abs(h - state.lastH) > 1) {
-          dirty.add(state);
+        const el = entry.target as HTMLElement;
+        if (!activated.has(el)) continue;
+        const prev = lastSize.get(el);
+        if (!prev || Math.abs(el.offsetWidth - prev.w) > 1 || Math.abs(el.offsetHeight - prev.h) > 1) {
+          changed = true;
         }
       }
-      if (dirty.size > 0) {
-        if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-          dirty.forEach((s) => rebuildFilter(s));
-          dirty.clear();
-        }, 100);
-      }
+      if (!changed) return;
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        activated.forEach((el) => {
+          const prev = lastSize.get(el);
+          if (!prev || Math.abs(el.offsetWidth - prev.w) > 1 || Math.abs(el.offsetHeight - prev.h) > 1) {
+            enqueue(el);
+          }
+        });
+      }, RESIZE_DEBOUNCE_MS);
     });
-    lenses.forEach((s) => observer.observe(s.el));
+
+    elements.forEach((el) => {
+      viewObserver.observe(el);
+      resizeObserver.observe(el);
+    });
 
     return () => {
-      observer.disconnect();
+      disposed = true;
+      viewObserver.disconnect();
+      resizeObserver.disconnect();
       if (resizeTimer) clearTimeout(resizeTimer);
-      lenses.forEach((s) => {
-        s.el.style.backdropFilter = "";
-        // @ts-expect-error vendor prefix
-        s.el.style.webkitBackdropFilter = "";
-      });
+      if (idleHandle) {
+        if (usingIdleCallback) window.cancelIdleCallback(idleHandle);
+        else clearTimeout(idleHandle);
+      }
+      elementKey.forEach((_, el) => clearFilter(el));
+      filters.forEach((entry, key) => destroyEntry(key, entry));
       svgRoot.remove();
     };
   }, []);
